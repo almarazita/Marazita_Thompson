@@ -8,12 +8,12 @@
 
 % Define the base path and load in the excel sheet
 % Contains most recent sorted file for each session converted using Pyramid
-base_directory = ['C:\Users\marazita\Box\GoldLab\Data\Physiology\' ...
+base_directory = ['C:\Users\GoldLab\Box\GoldLab\Data\Physiology\' ...
     'AODR\Data\MrM\Converted\Sorted\Pyramid\'];
-master = readtable(['C:\Users\marazita\Box\GoldLab\Analysis\AODR\' ...
+master = readtable(['C:\Users\GoldLab\Box\GoldLab\Analysis\AODR\' ...
     'MrM_Ci_Units.xlsx'], 'Format','auto');
-save_directory = ['C:\Users\marazita\Box\GoldLab\Data\Physiology\' ...
-    'AODR\Data\MrM\Converted\Sorted\Mat_Cleaned']; % location of final cleaned files
+save_directory = ['C:\Users\GoldLab\Box\GoldLab\Data\Physiology\' ...
+    'AODR\Data\MrM\Converted\Sorted\Mat_Cleaned\']; % location of final cleaned files
 
 % Delete Cicero rows and get the list of Mr. M file names
 master(~strcmp(master.Monkey,'MM'),:) = [];
@@ -63,7 +63,7 @@ for ifile = 1:num_sessions
 
     elseif ~isempty(session_files) == 1
         hdf5_fileName = session_files.name;
-        fprintf('hdf5_fileName = %s\n', hdf5_filename)
+        fprintf('hdf5_fileName = %s\n', hdf5_fileName)
 
     else
         error_message = "No .hdf5 file found for " + session_name;

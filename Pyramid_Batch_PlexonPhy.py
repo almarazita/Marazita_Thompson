@@ -9,19 +9,22 @@ debugging = False
 
 from pyramid import cli
 import pandas as pd
-import os
+import os, sys
 from matplotlib import pyplot as plt
 from matplotlib_venn import venn2, venn3
 
 # Directory where the sorted plexon data files are stored
 #dataSearchPath = "C:/Users/GoldLab/Box/GoldLab/Data/Physiology/AODR/Data/MrM/Sorted/"
-dataSearchPath = "C:\Users\GoldLab\Box\GoldLab\Data\Physiology\AODR\Data\MrM\Raw/"
+dataSearchPath = "C:/Users/GoldLab/Box/GoldLab/Data/Physiology/AODR/Data/MrM/Raw/"
 # Directory where pyramid can find your ecode rules
 pyramidSearchPath = "C:/Users/GoldLab/OneDrive/Documents/GitHub/Lab_Pipelines/experiments/aodr/ecodes/"
+# Directory of Phy folders
+phySearchPath = "C:/Users/GoldLab/Box/GoldLab/Data/Physiology/AODR/Data/MrM/Sorted/Phy folders/"
 # Conversion specifications
 convertSpecs = "C:/Users/GoldLab/OneDrive/Documents/GitHub/Lab_Pipelines/lwthompson2/experiments/aodr/AODR_plex_phy_experiment.yaml"
 # Base directory to save the output files from pyramid (hdf5 files)
 baseSaveDir = "C:/Users/GoldLab/Box/GoldLab/Data/Physiology/AODR/Data/MrM/Converted/Sorted/Pyramid/"
+sys.path.append("C:/Users/GoldLab/OneDrive/Documents/GitHub/Lab_Pipelines/lwthompson2/experiments/aodr/python") # to make sure pyramid can access the custom collectors/enhancers/functions?
 
 # Debugging
 excel_phy_filenames = ["MM_2022_03_18_6_96.plx", "MM_2022_03_23_6_58.plx", "MM_2022_09_14_REC2V.plx",
@@ -31,7 +34,7 @@ excel_phy_filenames = ["MM_2022_03_18_6_96.plx", "MM_2022_03_23_6_58.plx", "MM_2
                        "MM_2022_12_07_BV-ProRec.plx", "MM_2022_12_07_V-ProRec.plx", "MM_2022_12_12_BV-ProRec.plx",
                        "MM_2022_12_12_CV-ProRec.plx", "MM_2023_01_05_ZV-ProRec.plx", "MM_2023_01_09_VV-ProRec.plx",
                        "MM_2023_01_23_BV-ProRec.plx", "MM_2023_01_30_BV-ProRec.plx", "MM_2023_01_30_V-ProRec.plx",
-                       "MM_2023_07_18_B_Rec_V-ProRec.plx", "MM_2023_08_14C_Rec_V-ProRec.plx", "MM_2023_08_15_Rec_V-ProRec.plx",
+                       "MM_2023_08_14C_Rec_V-ProRec.plx", "MM_2023_08_15_Rec_V-ProRec.plx",
                        "MM_2023_08_15C_Rec_V-ProRec.plx", "MM_2023_08_16_Rec_V-ProRec.plx", "MM_2023_08_16B_Rec_V-ProRec.plx",
                        "MM_2023_08_18_Rec_V-ProRec.plx", "MM_2023_08_21_Rec_V-ProRec.plx", "MM_2023_08_21B_Rec_V-ProRec.plx",
                        "MM_2023_08_21C_Rec_V-ProRec.plx", "MM_2023_08_23c_Rec_V-ProRec.plx", "MM_2023_08_28B_Rec_V-ProRec.plx",
@@ -48,19 +51,9 @@ for name in sorted_plx_filenames:
     new_name = new_name.split('-0')[0]
     sorted_plx_filenames_2.append(new_name)
 sorted_plx_filenames_2 = set(sorted_plx_filenames_2)
-phy_folder_names = set([name.split('_s')[0] for name in os.listdir(dataSearchPath+"/Phy folders/")])
+phy_folder_names = set([name.split('_s')[0] for name in os.listdir(phySearchPath)])
 
 all_data = (excel_phy_filenames.intersection(sorted_plx_filenames_2)).intersection(phy_folder_names)
-
-raw_plx_filenames = set([s.split('.')[0] for s in os.listdir("C:/Users/GoldLab/Box/GoldLab/Data/Physiology/AODR/Data/MrM/Raw/")])
-rawv2_plx_filenames = set([s.split('.')[0] for s in os.listdir("C:/Users/GoldLab/Box/GoldLab/Data/Physiology/AODR/Data/MrM/Raw_v2/Neuronal/")])
-
-venn = venn2([raw_plx_filenames, rawv2_plx_filenames],
-             ('Raw', "Raw_v2"))
-plt.show()
-
-Raw_v2_only = rawv2_plx_filenames - raw_plx_filenames
-print(Raw_v2_only)
 
 if debugging:
 
@@ -89,59 +82,52 @@ if debugging:
     print(len(excel_only), "in Excel ONLY:")
     for name in excel_only:
         print(name)
-    print("Venn diagram = 1")
     print("\n")
 
     print(len(plx_only), "in Sorted folder ONLY:")
     for name in plx_only:
         print(name)
-    print("Venn diagram = 20")
     print("\n")
 
     print(len(phy_only), "in Phy Folders ONLY:")
     for name in phy_only:
         print(name)
-    print("Venn diagram = 1")
     print("\n")
 
     print(len(excel_plx), "in Excel and Sorted:")
     for name in excel_plx:
         print(name)
-    print("Venn diagram = 1")
     print("\n")
 
     print(len(excel_phy), "in Excel and Phy:")
     for name in excel_phy:
         print(name)
-    print("Venn diagram = 24")
     print("\n")
 
     print(len(plx_phy), "in Sorted and Phy:")
     for name in plx_phy:
         print(name)
-    print("Venn diagram = 0")
     print("\n")
 
     print(len(all_data), "in Excel, Sorted, and Phy:")
     for name in all_data:
         print(name)
-    print("Venn diagram = 15")
     print("\n")
 
 
 # For each Kilosorted session in the Excel sheet with a .plx file and phy folder
 plexon_names = [filename for filename in os.listdir(dataSearchPath) if filename.endswith(".plx")]
-phy_names = os.listdir(dataSearchPath+"Phy folders/")
+phy_names = os.listdir(phySearchPath)
 for baseName in all_data:
 
-    print(baseName)
+    print("\n", baseName)
 
     # Name of the current Plexon file
     currentPlx = [filename for filename in plexon_names if baseName in filename][0]
     print("currentPlx =", currentPlx)
 
     # Name of the phy folder containing the params.py file
-    phyFolder = [filename for filename in phy_names if baseName in filename][0]
+    phyFolder = phySearchPath+[filename for filename in phy_names if baseName in filename][0]+"/phy/params.py"
     print("phyFolder =", phyFolder)
 
     # The name you'd like for the .hdf5 output file
