@@ -4,29 +4,12 @@ import os, sys
 
 # Directory where the sorted plexon data files are stored
 dataSearchPath = "C:/Users/GoldLab/Box/GoldLab/Data/Physiology/AODR/Data/MrM/Sorted/Plexon-sorted/"
-pyramidSearchPath = "C:/Users/GoldLab/OneDrive/Documents/GitHub/Lab_Pipelines/experiments/aodr/ecodes/"
+pyramidSearchPath = "C:/Users/GoldLab/OneDrive/Documents/GitHub/Lab_Pipelines/lwthompson2/experiments/aodr/ecodes/"
 # Conversion specifications
-convertSpecs = "C:/Users/GoldLab/OneDrive/Documents/GitHub/Lab_Pipelines/experiments/aodr/AODR_plex_experiment.yaml"
+convertSpecs = "C:/Users/GoldLab/OneDrive/Documents/GitHub/Marazita_Thompson/AODR_plex_experiment.yaml"
 # Base directory to save the output files from pyramid (hdf5 files)
 baseSaveDir = "C:/Users/GoldLab/Box/GoldLab/Data/Physiology/AODR/Data/MrM/Converted/Sorted/Pyramid/"
 sys.path.append("C:/Users/GoldLab/OneDrive/Documents/GitHub/Lab_Pipelines/lwthompson2/experiments/aodr/python") # to make sure pyramid can access the custom collectors/enhancers/functions?
-
-# Debugging
-#old_sorted_filenames = set([s.split('.')[0] for s in os.listdir("C:/Users/GoldLab/Box/GoldLab/Data/Physiology/AODR/Data/MrM/Sorted/")])
-#all_sorted_filenames = set([s.split('.')[0] for s in os.listdir(dataSearchPath)])
-#converted_filenames = set([s.split('.')[0] for s in os.listdir(baseSaveDir)])
-#sessionRecord = pd.read_excel("C:/Users/GoldLab/Box/GoldLab/Analysis/AODR/MrM_Ci_Units.xlsx")
-#sessionNames = sessionRecord['Name']
-#sessionNames = set([name.split('.')[0] for name in sessionNames if name.startswith("MM")])
-#not_in_plx_sorted = sessionNames - all_sorted_filenames
-#not_in_base_sorted = sessionNames - old_sorted_filenames
-#nonexistent = not_in_plx_sorted.intersection(not_in_base_sorted)
-#for name in nonexistent:
-    #print(name)
-#print("\n")
-#unconverted = all_sorted_filenames.symmetric_difference(converted_filenames)
-#for name in unconverted:
-    #print(name)
 
 # Keep only the most recently sorted version of each session
 filenames = os.listdir(dataSearchPath)
@@ -54,11 +37,13 @@ print(len(final_filenames), "valid, Plexon-sorted, and non-duplicate files out o
 KeyError_redos = ["MM_2023_07_14_D_Rec_V-ProRec_Sorted-01.plx", "MM_2023_07_12_B_Rec_V-ProRec_Sorted-03.plx",
                   "MM_2023_07_19_Rec_V-ProRec_Sorted-01.plx", "MM_2023_07_17_G_Rec_V-ProRec_Sorted-01.plx",
                   "MM_2023_07_18_B_Rec_V-ProRec_Sorted-01.plx"]
+working_examples = ["MM_2021_07_15_Sorted-03.plx", "MM_2021_08_04_Sorted-01.plx"]
 
 # For each Plexon file in dataSearchPath
 for filename in final_filenames:
 
     if filename in KeyError_redos:
+    #if filename in working_examples:
 
         print("\n", filename)
         f = os.path.join(dataSearchPath, filename)

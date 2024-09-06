@@ -28,6 +28,7 @@ for ifile = 1:num_sessions
     fprintf(2,'\nExtracting file %i/%i\n', ifile, length(files))
     fileName = string(files(ifile));
     session_name = extractBefore(fileName, ".");
+    session_name = extractBefore(session_name, "_S");
     disp(session_name)
 
     % Get relevant units
@@ -105,9 +106,12 @@ for ifile = 1:num_sessions
 
 end
 
-fprintf('\nFailed to convert and clean the following sessions:');
-for file_num = 1:length(error_files)
-    fprintf('\n%s\n', error_files(file_num));
+% Let user know which files didn't work again
+if ~isempty(error_files)
+    fprintf('\nFailed to convert and clean the following sessions:\n');
+    for file_num = 1:length(error_files)
+        fprintf('\n%s\n', string(error_files(file_num)));
+    end
 end
 
 % Helps convert unit IDs from spreadsheet to double array
