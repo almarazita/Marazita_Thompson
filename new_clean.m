@@ -28,7 +28,9 @@ for ifile = 1:num_sessions
     fprintf(2,'\nExtracting file %i/%i\n', ifile, length(files))
     fileName = string(files(ifile));
     session_name = extractBefore(fileName, ".");
-    session_name = extractBefore(session_name, "_S");
+    if contains(session_name, "_S")
+        session_name = extractBefore(session_name, "_S");
+    end
     disp(session_name)
 
     % Get relevant units
@@ -71,7 +73,6 @@ for ifile = 1:num_sessions
         disp(error_message);
         error_files{end+1} = error_message;
         continue
-
     end
 
     % Convert .hdf5 to cleaned .mat file
@@ -79,7 +80,7 @@ for ifile = 1:num_sessions
     fprintf('Converting .hdf5 to .mat...\n')
     data = extractAODR_sessionNeural_2(hdf5_fullPath, 'MrM', unit_id);
 
-    % Check for errors
+    % Check for errors based on what I've encountered before
     % 1. Make sure that there is spike data
     if isempty(data.spikes.data)
         error_message = session_name + " has no spike data in struct created";
@@ -114,7 +115,7 @@ if ~isempty(error_files)
     end
 end
 
-% Helps convert unit IDs from spreadsheet to double array
+% Helper function to convert unit IDs from spreadsheet to double array
 function x = convertStringToArray(input_str)
 
 % Remove brackets if present

@@ -52,6 +52,8 @@ for u = 1:n_units
     end
 end
 
+% Convert to ms
+data.spike_time_mat = data.spike_time_mat*1000;
 
 %% Binned time course
 max_time = round(max(data.spike_time_mat(:))); % What is the max spike time - round to nearest ms

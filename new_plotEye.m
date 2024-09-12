@@ -17,15 +17,15 @@ sessionName = filename(startIdx:endIdx);
 % Declare variables that will be re-used
 y_labs = ["Horizontal Position (dva)" "Vertical Position (dva)" "Diameter (au)"];
 if byTrial
-    event_labs = ["Sample On", "Fixation Off", "Saccade On", "All Off"];
-    cols = [19, 8, 18, 4];
+    event_labs = ["Fixation On", "Sample On", "Fixation Off", "Saccade On", "All Off"];
+    cols = [9, 19, 8, 18, 4];
     event_idxs = zeros(1,4);
 end
 
 % For each trial
 % numTrials = length(data(1).analog.data); % Both units have the same analog data, so pull from the first row
 numTrials = data.data.header.numTrials;
-for tr=300:303 % Change
+for tr=300:301 % Change
     
     % Color-code line by trial type
     if data.data.values.hazard(tr) == 0.05
@@ -80,4 +80,32 @@ end
 % Add title
 if ~byTrial
     sgtitle(sessionName+" Eye Data", 'Interpreter', 'none')
+end
+end
+
+% Helper function that returns the appropriate location to index into
+% analog data for trial events
+function idx = new_getEventIndex(data, tr, col)
+% data is a 1 x 1 struct for a single session from plotEye
+% tr is the trial number (row in the timing table)
+% col is the column in the timing table corresponding to the desired trial
+% event
+    
+    % Get start time for this trial
+    start_time = data.data.times.trial_start(tr);
+     % Convert to ms?
+    start_time = start_time*1000;
+    %start_time = data.data.times.trial_begin(tr);
+
+    % Extract event time from table
+    idx = data.data.times(tr, col);
+    % Convert to double in ms
+    idx = idx{1,1}*1000;
+    % The first element is time 0
+    idx = idx + 1;
+    % Adjust for non-zero start time
+    idx = idx + abs(start_time);
+    % Round to the nearest integer
+    idx = round(idx);
+
 end

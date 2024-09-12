@@ -19,7 +19,13 @@ matOutput = [name.split('.')[0] for name in os.listdir("C:/Users/GoldLab/Box/Gol
 matOutput = [name.split('_S')[0] for name in matOutput]
 matOutput = set([name.split('_s')[0] for name in matOutput])
 
-cleanOutput = set([name.split('.')[0] for name in os.listdir("C:/Users/GoldLab/Box/GoldLab/Data/Physiology/AODR/Data/MrM/Converted/Sorted/Mat_Cleaned/")])
+cleanOutput = [name.split('.')[0] for name in os.listdir("C:/Users/GoldLab/Box/GoldLab/Data/Physiology/AODR/Data/MrM/Converted/Sorted/Mat_Cleaned/")]
+cleanOutput = set([name.split('_S')[0] for name in cleanOutput])
+
+FIRAcleanOutput = [name.split('.')[0] for name in os.listdir("C:/Users/GoldLab/Box/GoldLab/Analysis/AODR/Cleaned Data/")]
+FIRAcleanOutput = [name.split('_Cl')[0] for name in FIRAcleanOutput]
+FIRAcleanOutput = [name.split('_S')[0] for name in FIRAcleanOutput]
+FIRAcleanOutput = set([name.split('_s')[0] for name in FIRAcleanOutput])
 
 # pyramidConverts = sessionNames.intersection(pyramidOutput)
 # print(len(sessionNames), "valid Mr. M sessions")
@@ -43,13 +49,35 @@ cleanOutput = set([name.split('.')[0] for name in os.listdir("C:/Users/GoldLab/B
 # venn = venn2([pyramidOutput, matOutput], ("Pyramid", "Mat"))
 # plt.show()
 
-cleanConverts = matOutput.intersection(cleanOutput)
-print("\n", len(matOutput), "mat-converted Mr. M sessions")
-print(len(cleanConverts), "sessions went through cleaning")
-cleanFails = matOutput - cleanOutput
-print(len(cleanFails), "didn't make it:")
-for fail in cleanFails:
-    print(fail)
+# cleanConverts = matOutput.intersection(cleanOutput)
+# print("\n", len(matOutput), "mat-converted Mr. M sessions")
+# print(len(cleanConverts), "sessions went through cleaning")
+# cleanFails = matOutput - cleanOutput
+# print(len(cleanFails), "didn't make it:")
+# for fail in cleanFails:
+#     print(fail)
 
-venn = venn2([matOutput, cleanOutput], ("Mat","Cleaned"))
-plt.show()
+# venn = venn2([matOutput, cleanOutput], ("Mat","Cleaned"))
+# plt.show()
+
+# FIRAcleanConverts = sessionNames.intersection(FIRAcleanOutput)
+# print(len(sessionNames), "valid Mr. M sessions")
+# print(len(FIRAcleanConverts), "sessions were FRIA-converted and went through cleaning")
+# cleanFails = sessionNames - FIRAcleanOutput
+# print(len(cleanFails), "didn't make it:")
+# for fail in cleanFails:
+#     print(fail)
+
+# venn = venn2([sessionNames, FIRAcleanConverts], ("Excel","FIRA Cleaned"))
+# plt.show()
+
+# bothConverts = cleanOutput.intersection(FIRAcleanOutput)
+# print(len(cleanOutput), "sessions were pyramid-converted and cleaned")
+# print(len(FIRAcleanOutput), "sessions were FRIA-converted and cleaned")
+# difference = cleanOutput - FIRAcleanOutput
+# print(len(difference), "weren't previously cleaned:")
+# for fail in difference:
+#     print(fail)
+
+# venn = venn2([cleanOutput, FIRAcleanOutput], ("Pyramid Cleaned","FIRA Cleaned"))
+# plt.show()

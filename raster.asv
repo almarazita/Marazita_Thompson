@@ -1,0 +1,24 @@
+function raster(session)
+
+% session is a struct
+spike_times = session.data.spike_time_mat; % 1 x 326 x trials
+
+num_time_steps = size(spike_times, 2);
+num_trials = size(spike_times, 3);
+% for trial = 1:num_trials
+%     yaxis = ones(1, num_time_steps)*trial;
+%     scatter(spike_times(1,:,trial), yaxis, 1, 'k');
+%     hold on;
+% end
+
+binned_spikes = session.data.binned_spikes; % 1 x bins x trials
+
+
+num_bins = size(binned_spikes, 2);
+for trial = 411:num_trials
+    yaxis = ones(1, num_bins)*trial;
+    plot(binned_spikes(1,:,trial), yaxis, 'k');
+    hold on;
+end
+
+end

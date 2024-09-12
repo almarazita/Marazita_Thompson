@@ -118,28 +118,38 @@ if debugging:
 # For each Kilosorted session in the Excel sheet with a .plx file and phy folder
 plexon_names = [filename for filename in os.listdir(dataSearchPath) if filename.endswith(".plx")]
 phy_names = os.listdir(phySearchPath)
+
+empty_spikes = ["MM_2023_08_29C_Rec_V-ProRec", "MM_2023_08_30C_Rec_V-ProRec", "MM_2023_08_29_Rec_V-ProRec"]
+
 for baseName in all_data:
 
-    print("\n", baseName)
+    if baseName in empty_spikes:
+        print("\n", baseName)
 
-    # Name of the current Plexon file
-    currentPlx = [filename for filename in plexon_names if baseName in filename][0]
-    print("currentPlx =", currentPlx)
+        # Name of the current Plexon file
+        currentPlx = [filename for filename in plexon_names if baseName in filename]
+        # Some sessions were re-saved. Allow the user to choose which to use.
+        if len(currentPlx) > 0:
+            print("Multiple matching Plexon files")
+            currentPlx = currentPlx[1]
+        else:
+            currentPlx = currentPlx[0]
+        print("currentPlx =", currentPlx)
 
-    # Name of the phy folder containing the params.py file
-    phyFolder = phySearchPath+[filename for filename in phy_names if baseName in filename][0]+"/phy/params.py"
-    print("phyFolder =", phyFolder)
+        # Name of the phy folder containing the params.py file
+        phyFolder = phySearchPath+[filename for filename in phy_names if baseName in filename][0]+"/phy/params.py"
+        print("phyFolder =", phyFolder)
 
-    # The name you'd like for the .hdf5 output file
-    outputFname = baseSaveDir+currentPlx.split('.')[0]+".hdf5"
-    print("outputFname =", outputFname)
+        # The name you'd like for the .hdf5 output file
+        outputFname = baseSaveDir+currentPlx.split('.')[0]+".hdf5"
+        print("outputFname =", outputFname)
 
-    # Run the file through pyramid
-    cli.main(["convert", 
-            "--trial-file", outputFname, 
-            "--search-path", pyramidSearchPath, 
-            "--experiment", convertSpecs, 
-            "--readers", 
-            "plexon_reader.plx_file="+dataSearchPath+currentPlx,
-            "phy_reader.params_file="+phyFolder])
+        # Run the file through pyramid
+        cli.main(["convert", 
+                "--trial-file", outputFname, 
+                "--search-path", pyramidSearchPath, 
+                "--experiment", convertSpecs, 
+                "--readers", 
+                "plexon_reader.plx_file="+dataSearchPath+currentPlx,
+                "phy_reader.params_file="+phyFolder])
 
