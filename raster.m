@@ -8,7 +8,7 @@ num_time_steps = size(spike_times, 2);
 num_trials = size(spike_times, 3);
 for trial = 1:num_trials
     yaxis = ones(1, num_time_steps)*trial;
-    scatter(spike_times(2,:,trial), yaxis, 1, 'k');
+    scatter(spike_times(1,:,trial), yaxis, 1, 'k');
     hold on;
 end
 

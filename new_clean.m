@@ -31,6 +31,7 @@ for ifile = 1:num_sessions
     if contains(session_name, "_S")
         session_name = extractBefore(session_name, "_S");
     end
+
     disp(session_name)
 
     % Get relevant units
@@ -52,7 +53,7 @@ for ifile = 1:num_sessions
 
     % Find the name of this session's .hdf5 file in the pyramid output
     % directory, or skip if it doesn't have one
-    session_files = dir(fullfile(pyramid_directory, session_name+'*'));
+    session_files = dir(fullfile(base_directory, session_name+'*'));
     if length(session_files) > 1
         fprintf('Multiple files matching current session found:\n');
         for file_num = 1:length(session_files)
@@ -76,7 +77,7 @@ for ifile = 1:num_sessions
     end
 
     % Convert .hdf5 to cleaned .mat file
-    hdf5_fullPath = strcat(pyramid_directory, hdf5_fileName);
+    hdf5_fullPath = strcat(base_directory, hdf5_fileName);
     fprintf('Converting .hdf5 to .mat...\n')
     data = extractAODR_sessionNeural_2(hdf5_fullPath, 'MrM', unit_id);
 
@@ -102,11 +103,10 @@ for ifile = 1:num_sessions
 
     % Finally, save cleaned data in a new location
     mat_fullPath = strcat(save_directory, session_name, '.mat');
-    save(mat_fullPath, 'data');
+    save(mat_fullPath, 'data', '-v7.3');
     fprintf('Saved %s as %s\n', session_name, mat_fullPath)
-
 end
-
+    
 % Let user know which files didn't work again
 if ~isempty(error_files)
     fprintf('\nFailed to convert and clean the following sessions:\n');

@@ -13,7 +13,7 @@ else
     p = [];
 end
 
-event_idx = round(data.times.(event_code));
+event_idx = round(data.times.(event_code)*1000);
 event_idx = event_idx(~isnan(data.times.(event_code)));
 unit_spikes = squeeze(data.binned_spikes(:,~isnan(data.times.(event_code)))); % ms x trial
 
