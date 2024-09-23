@@ -16,6 +16,6 @@ for idx=1:length(filenames)
 
     cur_filename = filenames(idx);
     % Each cell is a data struct with 8 fields
-    all_pyr_cleaned_data{idx} = load(clean_dir+"\"+cur_filename);
+    all_pyr_cleaned_data{idx} = load(clean_dir+"\"+cur_filename).data;
 
 end
