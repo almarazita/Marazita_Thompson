@@ -39,7 +39,7 @@ for a = 1:length(alignments)
         std_cue = NaN(1,length(cue_locs)); %standard deviation for each cue location
         error_cue = NaN(1,length(cue_locs)); %standard error for each cue location
         for c = 1:length(cue_locs)
-            criteria = data.values.hazard==hazards(h) & data.ids.sample_id==cue_locs(c) & ~isnan(data.times.sac_on);
+            criteria = data.values.hazard==hazards(h) & data.ids.sample_id==cue_locs(c) & ~isnan(data.times.sac_on) & ~isnan(data.times.(char(alignment)));
             %tmp.spikes = squeeze(data.spikes.data(criteria,:));
             tmp.spikes = squeeze(data.binned_spikes(u,:,criteria));
             tmp.ecodes = data.values(criteria,:);
@@ -69,8 +69,8 @@ for a = 1:length(alignments)
                     frs =  tmp.spikes(round(start_t(t)):end,t);
                     fr_trial(t) = sum(frs)/((round(end_t(t))-round(start_t(t))));
                 else
-                    if round(start_t(t)) < 0 || round(end_t(t)) < 0
-                        disp(["Trial ", num2str(t)]);
+                    if isnan(round(start_t(t)))
+                        disp(num2str(t));
                     end
                     frs =  tmp.spikes(round(start_t(t)):round(end_t(t)),t);
                     fr_trial(t) = sum(frs)/((round(end_t(t))-round(start_t(t))));

@@ -71,8 +71,14 @@ for u = 1:n_units
     startIdx = strfind(filename, 'MM');
     endIdx = strfind(filename, '.hdf5') - 1;
     sessionName = filename(startIdx:endIdx);
-    annotation('textbox', [0.05 0.97 0.3 0.03], ...
-        'String', [sessionName ' Unit: ' num2str(data.spikes.id(u))], 'EdgeColor', 'none', ...
-        'HorizontalAlignment', 'left', 'FontSize', 16, 'FontWeight', 'bold', 'Interpreter', 'none');
+    %annotation('textbox', [0.05 0.97 0.3 0.03], ...
+        %'String', [sessionName ' Unit: ' num2str(data.spikes.id(u))], 'EdgeColor', 'none', ...
+        %'HorizontalAlignment', 'left', 'FontSize', 16, 'FontWeight', 'bold', 'Interpreter', 'none');
+
+    % Save as PDF
+    pdfFileName = sessionName+"_Unit"+num2str(data.spikes.id(u))+".pdf";
+    %print(fig, pdfFileName, '-dpdf', '-r0');
+    exportgraphics(fig, pdfFileName, 'ContentType', 'vector');
+    close(fig);
 
 end

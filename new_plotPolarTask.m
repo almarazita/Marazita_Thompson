@@ -54,10 +54,20 @@ else
 
         for s = 1:length(sample_loc)
             criteria = data.ids.task_id == 1 & data.values.t1_x==sample_loc(s,1) & data.values.t1_y==sample_loc(s,2) & data.ids.score == 1;  %select trials with specified sample and correct
+            if sum(criteria)==0
+                fprintf('No trials where task_id = 1, t1_x = %f, t1_y = %f, and choice was correct\n', sample_loc(s,1), sample_loc(s,2));
+                continue
+            end
             loc_data{s} = squeeze(data.spike_time_mat(u,:,criteria));
             loc_ecodes{s} = data.values(criteria,:);
             loc_timing{s} = data.times(criteria,:);
         end
+
+        if all(cellfun(@isempty, loc_data))
+            disp("No data to plot for plotPolarTask");
+            continue
+        end
+
         %ax = subplot(1,3,t);hold on;
         id = num2str(data.spikes.id(u));
         p(t) = new_plotPolarAlignedT(loc_data,loc_ecodes,loc_timing,alignments(t),window_length,t,ax);
