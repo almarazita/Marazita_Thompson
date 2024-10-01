@@ -8,7 +8,6 @@ arguments
     session_struct = []; % Cell in cell array loaded in by new_loadClean
     axs = [];
 end
-%data = session_struct.data;
 data = session_struct;
 n_units = length(data.spikes.id);
 

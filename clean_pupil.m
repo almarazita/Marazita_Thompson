@@ -1,4 +1,4 @@
-function data = cleanPupil(data, will_plot)
+function data = clean_pupil(data, will_plot)
 %% Adds cleaned pupil diameter data to the session's struct
 % data: 1 x 1 struct with 8 fields for a session
 % plot: boolean for whether or not to visualize cleaning process
@@ -145,7 +145,8 @@ end
 data.baseline_pupil = baseline_pupil;
 
 %% 6) Get evoked pupil
-% Extract evoked, which is sample_on out to ~500-900 ms.
+% Extract evoked, which is sample_on out to 1,000 ms.
+% Use raw data just for visualization purposes
 raw_pupil_data = data.signals.data(:, 3);
 min_evoked_start = min(sample_on_idxs);
 max_evoked_end = max(cellfun(@length, raw_pupil_data));
@@ -174,6 +175,8 @@ end
 % hold off;
 
 % Choose 1000ms window
+% Average smoothed pupil data from sample_on to 1000ms past that to get
+% average evoked value
 window = 1000;
 evoked_pupil = nan(num_trials, 1);
 for tr = 1:num_trials
@@ -181,9 +184,9 @@ for tr = 1:num_trials
     if ~isnan(sample_on_idx)
         evoked_end = sample_on_idx+window;
         if sac_on_idxs(tr) < evoked_end
-            fprintf('Trial %d is averaging %.2  ')
+            fprintf('Trial %d is missing %d frames in average', tr, evoked_end-sac_on_idxs(tr));
         end
-        evoked_pupil(tr) = nanmean(data.cleaned_pupil(tr, sample_on_idx:));
+        evoked_pupil(tr) = max(nanrunmean(data.cleaned_pupil(tr, sample_on_idx:evoked_end), 50));
     end
 end
 data.evoked_pupil = evoked_pupil;

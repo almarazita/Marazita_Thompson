@@ -1,16 +1,26 @@
+function data = clean_pupil(data, will_plot)
+%% Adds cleaned pupil diameter data to the session's struct
+% data: 1 x 1 struct with 8 fields for a session
+% plot: boolean for whether or not to visualize cleaning process
+
+% Default to not plotting
+if nargin < 2
+    will_plot = false;
+end
+
 %% 1) Create a trials x time matrix of pupil data.
 % Get pupil response from when the animal fixates to when the animal makes
 % a saccade for each trial.
 
 % Confirm that the first timepoint is the same as fixation on
 if sum(data.times.fp_on) ~= 0
-    disp(['Trials are not aligned to fixation on. Quitting.'])
+    disp('Trials are not aligned to fixation on. Quitting.')
     return
 end
 
 % Get the index of the saccade start time for each trial
 num_trials = data.header.numTrials;
-sac_on_idxs = nan(numTrials, 1);
+sac_on_idxs = nan(num_trials, 1);
 for tr = 1:num_trials
     sac_on_idxs(tr) = new_getEventIndex(data, tr, 18); % sac_on = column 18
 end
@@ -39,14 +49,16 @@ sigma = nanstd(pupil_data(:));
 z_scores = (pupil_data - mu) / sigma;
 
 %% Plot to check that values are between -4 and +4.
-figure;
-imagesc(z_scores);
-colorbar_handle = colorbar;
-title('Heatmap of Pupil Diameter Z-Scores');
-xlabel('Time (ms)');
-ylabel('Trials');
-ylabel(colorbar_handle, 'Z-Score');
-clim([-5 5]);
+if will_plot
+    figure;
+    imagesc(z_scores);
+    colorbar_handle = colorbar;
+    title('Heatmap of Pupil Diameter Z-Scores');
+    xlabel('Time (ms)');
+    ylabel('Trials');
+    ylabel(colorbar_handle, 'Z-Score');
+    clim([-5 5]);
+end
 
 %% 3) Subtract the trial-averaged pupil trace
 % Subtract out "noise" related to luminance and eye position that's
@@ -54,17 +66,18 @@ clim([-5 5]);
 avg_pupil_trace = nanmean(z_scores, 1);
 standardized = z_scores - avg_pupil_trace;
 
-%% 3) Smoothing (ChatGPT)
+%% 4) Smoothing (ChatGPT)
 % Smooth using a boxcar filter with 151ms window.
 % Define the boxcar filter parameters
 bin_width = 151; % Window width in ms
-kernel = ones(1, bin_width); % Boxcar kernel (not normalized)
+kernel = ones(1, bin_width); % Boxcar kernel
 
 % Get the number of trials and time points
 [num_trials, num_frames] = size(standardized);
 
 % Initialize a matrix to hold the smoothed results
 smoothed_data = nan(num_trials, num_frames); % Preallocate for NaNs
+data.cleaned_pupil = nan(num_trials, num_frames);
 
 % Apply the smoothing to each trial (row)
 for tr = 1:num_trials
@@ -73,44 +86,107 @@ for tr = 1:num_trials
             kernel / bin_width, 'same');
     end
 end
+data.cleaned_pupil = smoothed_data; % Add to struct
 
-%% Plot again to see why these steps are beneficial.
-% Choose a trial (row) at random
-rand_trial = randperm(num_trials, 1);
-while all(isnan(pupil_data(rand_trial, :)))
-    rand_trial = randperm(num_trials, 1);
+%% Plot again to see why these steps are beneficial
+if will_plot
+    % Ask how many random trials the user wants to see
+    num_plots = input('How many random trials do you want to check? ');
+
+    for cur_plot = 1:num_plots
+        % Choose a trial (row) at random
+        rand_trial = randperm(num_trials, 1);
+        while all(isnan(pupil_data(rand_trial, :))) || data.ids.score(rand_trial) < 0
+            rand_trial = randperm(num_trials, 1);
+        end
+        original_trace = pupil_data(rand_trial, :);
+        z_score_trace = z_scores(rand_trial, :);
+        standardized_trace = standardized(rand_trial, :);
+        smoothed_trace = smoothed_data(rand_trial, :);
+        all_traces = [original_trace, z_score_trace, standardized_trace, smoothed_trace];
+        y_min = min(all_traces, [], 'all');
+        y_max = max(all_traces, [], 'all');
+        y_limits = [y_min, y_max];
+        figure;
+        hold on;
+        plot(original_trace, 'Color', [0 0.4470 0.7410], 'LineWidth', 1.5, 'DisplayName', 'Original', 'LineStyle', '-');
+        plot(z_score_trace, 'Color', [0.8500 0.3250 0.0980], 'LineWidth', 1.5, 'DisplayName', 'Z-Scored', 'LineStyle', '--', 'LineWidth', 1.5);
+        plot(standardized_trace, 'Color', [0.9290 0.6940 0.1250], 'LineWidth', 1.5, 'DisplayName', 'Standardized', 'LineStyle', ':');
+        plot(smoothed_trace, 'Color', [0.4660 0.6740 0.1880], 'LineWidth', 2.5, 'DisplayName', 'Smoothed', 'LineStyle', '-');
+        hold off;
+        xlabel('Time (ms)');
+        ylabel('Values');
+        ylim(y_limits);
+        grid on;
+        legend('show');
+        sgtitle(sprintf('Pupil Data Visualization (Trial %d)', rand_trial));
+        sgtitle(sprintf('Pupil Data Cleaning (Trial %d)', rand_trial));
+    end
 end
-original_trace = pupil_data(rand_trial, :);
-z_score_trace = z_scores(rand_trial, :);
-standardized_trace = standardized(rand_trial, :);
-smoothed_trace = smoothed_data(rand_trial, :);
-all_traces = [original_trace, z_score_trace, standardized_trace, smoothed_trace];
-y_min = min(all_traces, [], 'all');
-y_max = max(all_traces, [], 'all');
-y_limits = [y_min, y_max];
-figure;
-hold on;
-plot(original_trace, 'Color', [0 0.4470 0.7410], 'LineWidth', 1.5, 'DisplayName', 'Original', 'LineStyle', '-');
-plot(z_score_trace, 'Color', [0.8500 0.3250 0.0980], 'LineWidth', 1.5, 'DisplayName', 'Z-Scored', 'LineStyle', '--', 'LineWidth', 1.5);
-plot(standardized_trace, 'Color', [0.9290 0.6940 0.1250], 'LineWidth', 1.5, 'DisplayName', 'Standardized', 'LineStyle', ':');
-plot(smoothed_trace, 'Color', [0.4660 0.6740 0.1880], 'LineWidth', 2.5, 'DisplayName', 'Smoothed', 'LineStyle', '-');
-hold off;
-xlabel('Time (ms)');
-ylabel('Values');
-ylim(y_limits);
-grid on;
-legend('show');
-sgtitle(sprintf('Pupil Data Visualization (Trial %d)', rand_trial));
-sgtitle(sprintf('Pupil Data Cleaning (Trial %d)', rand_trial));
 
-% Average z-scored pupil diameter from fix_on to sample_on (~200-300 ms) to
-% get a single dot for each trial.
+%% 5) Get baseline pupil
+% Average z-scored pupil diameter from fix_on to sample_on.
 
-% Plot baseline diameter as a function as the time that the trial started.
+% Get the index of when the sample appeared for each trial
+sample_on_idxs = nan(num_trials, 1);
+for tr = 1:num_trials
+    sample_on_idxs(tr) = new_getEventIndex(data, tr, 19); % sample_on = column 19
+end
 
-% Plot the pupil data for a given session or neuron to look at hazard 1 vs.
-% 2.
+% Compute the average pupil diameter during baseline (fixation only) for
+% each trial
+baseline_pupil = nan(num_trials, 1);
+for tr = 1:num_trials
+    sample_on_idx = sample_on_idxs(tr);
+    if ~isnan(sample_on_idx)
+        baseline_pupil(tr) = nanmean(data.cleaned_pupil(tr, 1:sample_on_idx));
+    end
+end
+data.baseline_pupil = baseline_pupil;
 
-% Extract evoked, which is sample_on out to ~500-900 ms, but look at raw
-% data and pupil constriction seeming to go away or go back to some steady
-% value.
+%% 6) Get evoked pupil
+% Extract evoked, which is sample_on out to ~500-900 ms.
+% Use raw data just for visualization purposes
+raw_pupil_data = data.signals.data(:, 3);
+min_evoked_start = min(sample_on_idxs);
+max_evoked_end = max(cellfun(@length, raw_pupil_data));
+evoked_pupil = nan(num_trials, max_evoked_end-min_evoked_start);
+for tr = 1:num_trials
+    sample_on_idx = sample_on_idxs(tr);
+    last_frame = length(raw_pupil_data{tr});
+    if ~isnan(sample_on_idx)
+        evoked_pupil(tr, 1:last_frame-sample_on_idx+1) = raw_pupil_data{tr}(sample_on_idx:last_frame)';
+    end
+end
+
+%% Visualize pupil data to choose when to average over
+% % Choose a trial (row) at random
+% rand_trial = randperm(num_trials, 1);
+% while all(isnan(pupil_data(rand_trial, :))) || data.ids.score(rand_trial) < 0
+%     rand_trial = randperm(num_trials, 1);
+% end
+% figure;
+% hold on;
+% plot(evoked_pupil(rand_trial, :), 'b-', 'LineWidth', 2);
+% xlabel('Time (ms)');
+% ylabel('Evoked Pupil Diameter')
+% title(['Trial ', num2str(rand_trial)]);
+% grid on;
+% hold off;
+
+% Choose 1000ms window
+% Average smoothed pupil data from sample_on to 1000ms past that to get
+% average evoked value
+window = 1000;
+evoked_pupil = nan(num_trials, 1);
+for tr = 1:num_trials
+    sample_on_idx = sample_on_idxs(tr);
+    if ~isnan(sample_on_idx)
+        evoked_end = sample_on_idx+window;
+        if sac_on_idxs(tr) < evoked_end
+            fprintf('Trial %d is missing %d frames in average', tr, evoked_end-sac_on_idxs(tr));
+        end
+        evoked_pupil(tr) = nanmean(data.cleaned_pupil(tr, sample_on_idx:evoked_end));
+    end
+end
+data.evoked_pupil = evoked_pupil;
