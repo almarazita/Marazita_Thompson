@@ -134,12 +134,12 @@ for tr = 1:num_trials
 end
 
 % Compute the average pupil diameter during baseline (fixation only) for
-% each trial. Use window from time 0 to 500ms before sample_on.
+% each trial
 baseline_pupil = nan(num_trials, 1);
 for tr = 1:num_trials
     sample_on_idx = sample_on_idxs(tr);
     if ~isnan(sample_on_idx)
-        baseline_pupil(tr) = nanmean(data.cleaned_pupil(tr, 1:sample_on_idx-500));
+        baseline_pupil(tr) = nanmean(data.cleaned_pupil(tr, 1:sample_on_idx));
     end
 end
 data.baseline_pupil = baseline_pupil;
@@ -174,7 +174,7 @@ data.baseline_pupil = baseline_pupil;
 % grid on;
 % hold off;
 
-%% Calculate
+%% Calculate 
 % Choose 1000ms window
 % Average smoothed pupil data from sample_on to 1000ms past that to get
 % average evoked value
@@ -187,12 +187,8 @@ for tr = 1:num_trials
         if sac_on_idxs(tr) < evoked_end
             fprintf('Trial %d is missing %d frames in average', tr, evoked_end-sac_on_idxs(tr));
         end
-        if evoked_end > length(data.cleaned_pupil(tr))
-            fprintf('Trial %d does not have 1000 ms of data after sample_on\n', tr);
-            continue;
-        end
         evoked_pupil(tr) = max(nanrunmean(data.cleaned_pupil(tr, sample_on_idx:evoked_end), 50));
     end
 end
 evoked_pupil = evoked_pupil - baseline_pupil;
-data.bs_evoked_pupil = evoked_pupil;
+data.evoked_pupil = evoked_pupil;

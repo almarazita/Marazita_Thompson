@@ -15,9 +15,6 @@ function data = extractAODR_sessionNeural_2(fileName, monkey, unit_id)
     'converter',    'Pyramid', ...
     'convertSpecs', 'AODR_experiment');
 
-% Plot pupil data
-%plotEye(data)
-
 % At this point, we do not filter specific neurons of interest so that it is
 % easy to explore the results of a session (e.g., when sorting units initially)
 
@@ -69,3 +66,6 @@ for u = 1:n_units
     end
 end
 end
+
+%% Clean pupil data
+data = clean_pupil(data);
