@@ -47,6 +47,7 @@ for i = 1:num_sessions
 
 end
 
+figure;
 %% Population median baseline residual by switch rate
 % Get switch rates
 co = {[4 94 167]./255, [194 0 77]./255}; % Keep switch rate colors consistent
@@ -76,27 +77,25 @@ title('Baseline Pupil by Switch Rate');
 ax_handles(1) = gca;
 
 %% Average baseline residual by condition
+limits = [min([low_h_baselines; high_h_baselines])*1.1,...
+    max([low_h_baselines; high_h_baselines])*1.1];
 subplot(2,2,2);
-scatter(low_h_baselines, high_h_baselines,'filled');
+xlim(limits);
+ylim(limits);
 hold on;
-xlimits = xlim;
-ylimits= ylim;
-maxlimits = [min(xlimits(1), ylimits(1)), max(xlimits(2), ylimits(2))];
-plot(maxlimits, maxlimits, 'k--', 'LineWidth', 1.5);
-% unity_line_x = linspace(min(xlimits), max(xlimits), 100);
-% unity_line_y = unity_line_x;
-% plot(unity_line_x, unity_line_y, 'k--', 'LineWidth', 1.5);
-fill([xlimits(1) xlimits(2) xlimits(2)],...
-    [xlimits(1) xlimits(2) xlimits(1)], co{1},...
+plot(limits, limits, 'k--', 'LineWidth', 1.5);
+fill([limits(1) limits(2) limits(2)],...
+    [limits(1) limits(2) limits(1)], co{1},...
     'FaceAlpha', 0.3, 'EdgeColor', 'none');
-fill([xlimits(1) xlimits(2) xlimits(1)],...
-    [xlimits(1) xlimits(2) xlimits(2)], co{2},...
+fill([limits(1) limits(2) limits(1)],...
+    [limits(1) limits(2) limits(2)], co{2},...
     'FaceAlpha', 0.3, 'EdgeColor', 'none');
+scatter(low_h_baselines, high_h_baselines, 'k', 'filled');
 num_above = sum(high_h_baselines > low_h_baselines);
 num_below = sum(high_h_baselines <= low_h_baselines);
-text(xlimits(1) * 1.1, ylimits(2) * 0.9,...
+text(0.2, 0.4,...
     ['N = ' num2str(num_above)], 'Color', 'k', 'FontSize', 10);
-text(xlimits(2) * 0.9, ylimits(1) * 1.1,...
+text(0.4, 0.3,...
     ['N = ' num2str(num_below)], 'Color', 'k', 'FontSize', 10);
 xlabel('Low switch rate baseline pupil');
 ylabel('High switch rate baseline pupil');
@@ -127,9 +126,35 @@ ylabel('Average Evoked Pupil Diameter');
 title('Evoked Pupil by Switch Rate');
 ax_handles(2) = gca;
 
+%% Average evoked pupil by condition
+limits = [min([low_h_evokeds; high_h_evokeds])*1.1,...
+    max([low_h_evokeds; high_h_evokeds])*1.1];
+subplot(2,2,4);
+xlim(limits);
+ylim(limits);
+hold on;
+plot(limits, limits, 'k--', 'LineWidth', 1.5);
+fill([limits(1) limits(2) limits(2)],...
+    [limits(1) limits(2) limits(1)], co{1},...
+    'FaceAlpha', 0.3, 'EdgeColor', 'none');
+fill([limits(1) limits(2) limits(1)],...
+    [limits(1) limits(2) limits(2)], co{2},...
+    'FaceAlpha', 0.3, 'EdgeColor', 'none');
+scatter(low_h_evokeds, high_h_evokeds, 'k', 'filled');
+num_above = sum(high_h_evokeds > low_h_evokeds);
+num_below = sum(high_h_evokeds <= low_h_evokeds);
+text(0.5, 0.7,...
+    ['N = ' num2str(num_above)], 'Color', 'k', 'FontSize', 10);
+text(0.7, 0.5,...
+    ['N = ' num2str(num_below)], 'Color', 'k', 'FontSize', 10);
+xlabel('Low switch rate evoked pupil');
+ylabel('High switch rate evoked pupil');
+hold off;
+
+%% Whole plot
 % Set y axis limits to be the same
-ylim = cell2mat(get(ax_handles, 'Ylim'));
-ylim_new = [min(ylim(:,1)), max(ylim(:,2))];
+ylims = cell2mat(get(ax_handles, 'Ylim'));
+ylim_new = [min(ylims(:,1)), max(ylims(:,2))];
 set(ax_handles, 'Ylim', ylim_new);
 
 % Add main title

@@ -77,18 +77,19 @@ ax_handles(1) = gca;
 
 %% Average baseline residual by condition
 subplot(2,2,2);
-scatter(low_h_baselines, high_h_baselines,'filled');
+scatter(low_h_baselines, high_h_baselines, 'k', 'filled');
 hold on;
-plot([-10, 10], [-10, 10], 'k--', 'LineWidth', 1.5);
-% xlimits = xlim;
-% ylimits= ylim;
-% unity_line_x = linspace(min(xlimits), max(xlimits), 100);
-% unity_line_y = unity_line_x;
-% plot(unity_line_x, unity_line_y, 'k--', 'LineWidth', 1.5);
-fill([-10 10 10], [-10 10 -10], co{1}, 'FaceAlpha', 0.3, 'EdgeColor', 'none');
-fill([-10],...
-    [-10 ],...
-    co{2}, 'FaceAlpha', 0.3, 'EdgeColor', 'none');
+limits = [xlim, ylim];
+limits_new = [min(limits(:,1)), max(limits(:,2))];
+xlim(limits_new);
+ylim(limits_new);
+plot(limits_new, limits_new, 'k--', 'LineWidth', 1.5);
+fill([maxlimits(1) maxlimits(2) maxlimits(2)],...
+    [maxlimits(1) maxlimits(2) maxlimits(1)], co{1},...
+    'FaceAlpha', 0.3, 'EdgeColor', 'none');
+fill([maxlimits(1) maxlimits(2) maxlimits(1)],...
+    [maxlimits(1) maxlimits(2) maxlimits(2)], co{2},...
+    'FaceAlpha', 0.3, 'EdgeColor', 'none');
 num_above = sum(high_h_baselines > low_h_baselines);
 num_below = sum(high_h_baselines <= low_h_baselines);
 text(xlimits(1) * 1.1, ylimits(2) * 0.9,...
@@ -124,6 +125,7 @@ ylabel('Average Evoked Pupil Diameter');
 title('Evoked Pupil by Switch Rate');
 ax_handles(2) = gca;
 
+%% Whole plot
 % Set y axis limits to be the same
 ylim = cell2mat(get(ax_handles, 'Ylim'));
 ylim_new = [min(ylim(:,1)), max(ylim(:,2))];
