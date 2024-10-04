@@ -83,7 +83,7 @@ for ifile = 1:num_sessions
     % matrix, binned spikes, and cleaned pupil data)
     hdf5_fullPath = strcat(base_directory, hdf5_fileName);
     fprintf('Converting .hdf5 to .mat...\n')
-    data = extractAODR_sessionNeural_2(hdf5_fullPath, 'MrM', unit_id);
+    data = new_extractAODR_sessionNeural(hdf5_fullPath, 'MrM', unit_id);
 
     %% Debugging
     % Check for errors based on what I've encountered before

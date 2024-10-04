@@ -12,12 +12,6 @@ end
 % Get pupil response from when the animal fixates to when the animal makes
 % a saccade for each trial.
 
-% Confirm that the first timepoint is the same as fixation on
-if sum(data.times.fp_on) ~= 0
-    disp('Trials are not aligned to fixation on. Quitting.')
-    return
-end
-
 % Get the index of the saccade start time for each trial
 num_trials = data.header.numTrials;
 sac_on_idxs = nan(num_trials, 1);
@@ -125,7 +119,7 @@ if will_plot
 end
 
 %% 5) Get baseline pupil
-% Average z-scored pupil diameter from fix_on to sample_on.
+% Average z-scored pupil diameter from fix_on to 500ms before sample_on.
 
 % Get the index of when the sample appeared for each trial
 sample_on_idxs = nan(num_trials, 1);
@@ -134,11 +128,11 @@ for tr = 1:num_trials
 end
 
 % Compute the average pupil diameter during baseline (fixation only) for
-% each trial. Use window from time 0 to 500ms before sample_on.
+% each completed trial. Use window from time 0 to 500ms before sample_on.
 baseline_pupil = nan(num_trials, 1);
 for tr = 1:num_trials
     sample_on_idx = sample_on_idxs(tr);
-    if ~isnan(sample_on_idx)
+    if ~isnan(sample_on_idx) && ~isnan(data.ids.choice(tr))
         baseline_pupil(tr) = nanmean(data.cleaned_pupil(tr, 1:sample_on_idx-500));
     end
 end
@@ -182,12 +176,12 @@ window = 1000;
 evoked_pupil = nan(num_trials, 1);
 for tr = 1:num_trials
     sample_on_idx = sample_on_idxs(tr);
-    if ~isnan(sample_on_idx)
+    if ~isnan(sample_on_idx) && ~isnan(data.ids.choice(tr))
         evoked_end = sample_on_idx+window;
         if sac_on_idxs(tr) < evoked_end
             fprintf('Trial %d is missing %d frames in average', tr, evoked_end-sac_on_idxs(tr));
         end
-        if evoked_end > length(data.cleaned_pupil(tr))
+        if evoked_end > length(data.cleaned_pupil(tr,:))
             fprintf('Trial %d does not have 1000 ms of data after sample_on\n', tr);
             continue;
         end

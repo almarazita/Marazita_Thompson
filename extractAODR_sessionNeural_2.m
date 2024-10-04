@@ -1,4 +1,4 @@
-function data = extractAODR_sessionNeural_2(fileName, monkey, unit_id)
+function data = new_extractAODR_sessionNeural(fileName, monkey, unit_id)
 
 % ecode names are:
 %   trial_num, task_id, hazard, correct_target, sample_id, score, 
