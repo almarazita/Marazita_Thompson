@@ -1,5 +1,10 @@
-function [fig] = plot_pupil(data_w_pupil)
-%% Plot cleaned baseline and evoked pupil data
+function [fig] = plot_pupil(data_w_pupil, will_save)
+%% Plot cleaned baseline and evoked pupil data, optionally saving as PDF
+
+% Default to not saving
+if nargin < 2
+    will_save = false;
+end
 
 % Create figure
 fig = figure;
@@ -107,3 +112,10 @@ startIdx = strfind(filename, 'MM');
 endIdx = strfind(filename, '.hdf5') - 1;
 sessionName = filename(startIdx:endIdx);
 sgtitle({sessionName, 'Pupil Data'}, 'Interpreter', 'none')
+
+%% Optionally, save as PDF
+if will_save
+    pdfFileName = sessionName+"_Pupil.pdf";
+    exportgraphics(fig, pdfFileName, 'ContentType', 'vector');
+    close(fig);
+end
