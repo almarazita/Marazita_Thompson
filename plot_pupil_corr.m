@@ -44,7 +44,8 @@ for i = 1:num_sessions
     high_h_bs_evoked = bs_evoked(cur_sesion.values.hazard == 0.50);
     if ~isempty(high_h_residualsBaseline)
         [rho, pval] = corr(high_h_residualsBaseline, high_h_bs_evoked,...
-            'Type', 'Spearman', 'Rows', 'complete');
+            'Type', 'Spearman', ['Ro' ...
+            'ws'], 'complete');
         high_h_rhos(i) = rho;
     end
 end

@@ -55,7 +55,7 @@ function data = new_extractAODR_sessionNeural(fileName, monkey, unit_id)
     %% Binned time course
     max_time = round(max(data.spike_time_mat(:))); % What is the max spike time - round to nearest ms
     spikes_idx = round(data.spike_time_mat); % spike times at closest ms
-    bin_width = 50; % ms width of bin
+    bin_width = 50; % ms width of bin (to average over)
     kernel = ones(1,bin_width); % "boxcar" kernel
     for u = 1:n_units
         for t = 1:n_trials
