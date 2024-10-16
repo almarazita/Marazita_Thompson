@@ -15,11 +15,9 @@ end
 
 event_idx = round(data.times.(event_code)*1000);
 event_idx = event_idx(~isnan(data.times.(event_code)));
-if ndims(data.binned_spikes)<3
-    unit_spikes = squeeze(data.binned_spikes(:,~isnan(data.times.(event_code)))); % ms x trial
-else
-    unit_spikes = squeeze(data.binned_spikes(1,:,~isnan(data.times.(event_code)))); % ms x trial
-end
+if size*()
+unit_spikes = squeeze(data.binned_spikes(:,~isnan(data.times.(event_code)))); % ms x trial
+
 % You should be careful here. If the size of your shift relative to the
 % size of your array, and the window width, is too large you could be averaging
 % beginning and end trial spikes

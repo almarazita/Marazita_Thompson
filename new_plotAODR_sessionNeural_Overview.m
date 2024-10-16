@@ -1,4 +1,4 @@
-function data = new_plotAODR_sessionNeural_Overview(session_struct, axs)
+function data = new_plotAODR_sessionNeural_Overview(session_struct, axs, save_fig)
 % MEGA figure
 % Author: Annie, adapted from Victoria Subritzky Katz (with a little help from chatgpt)
 % Date: September 2024
@@ -7,6 +7,7 @@ function data = new_plotAODR_sessionNeural_Overview(session_struct, axs)
 arguments
     session_struct = []; % Cell in cell array loaded in by new_loadClean
     axs = [];
+    save_fig = 0;
 end
 data = session_struct;
 n_units = length(data.spikes.id);
@@ -73,11 +74,12 @@ for u = 1:n_units
     %annotation('textbox', [0.05 0.97 0.3 0.03], ...
         %'String', [sessionName ' Unit: ' num2str(data.spikes.id(u))], 'EdgeColor', 'none', ...
         %'HorizontalAlignment', 'left', 'FontSize', 16, 'FontWeight', 'bold', 'Interpreter', 'none');
-
-    % Save as PDF
-    pdfFileName = sessionName+"_Unit"+num2str(data.spikes.id(u))+".pdf";
-    %print(fig, pdfFileName, '-dpdf', '-r0');
-    exportgraphics(fig, pdfFileName, 'ContentType', 'vector');
-    close(fig);
+        if save_fig
+            % Save as PDF
+            pdfFileName = sessionName+"_Unit"+num2str(data.spikes.id(u))+".pdf";
+            %print(fig, pdfFileName, '-dpdf', '-r0');
+            exportgraphics(fig, pdfFileName, 'ContentType', 'vector');
+            close(fig);
+        end
 
 end
