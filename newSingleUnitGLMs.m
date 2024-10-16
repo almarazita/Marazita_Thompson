@@ -6,7 +6,7 @@ lm_table = table();
 lm_table.FR = data.epochs.baseline(criteria)' + data.epochs.target_on(criteria)'; % Add back baseline
 lm_table.Base = data.epochs.baseline(criteria)'; % Baseline
 lm_table(isnan(data.ids.sample_id(criteria)),:) = []; % remove trials where target id didn't exist
-unit_table.visual_evoked_p(unit_num) = ranksum(lm_table.FR,lm_table.Base); % grouping rather than continuous is probably more appropriate
+unit_table.visual_evoked_p(unit_num) = signrank(lm_table.FR,lm_table.Base); % grouping rather than continuous is probably more appropriate
 
 %% Check for memory related activity compared to baseline
 criteria = ~isnan(data.values.hazard);
@@ -14,7 +14,7 @@ lm_table = table();
 lm_table.FR = data.epochs.baseline(criteria)' + data.epochs.memory(criteria)'; % Add back baseline
 lm_table.Base = data.epochs.baseline(criteria)'; % Baseline
 lm_table(isnan(data.ids.sample_id(criteria)),:) = []; % remove trials where target id didn't exist
-unit_table.memory_evoked_p(unit_num) = ranksum(lm_table.FR,lm_table.Base); % grouping rather than continuous is probably more appropriate
+unit_table.memory_evoked_p(unit_num) = signrank(lm_table.FR,lm_table.Base); % grouping rather than continuous is probably more appropriate
 
 %% Check for saccade related activity compared to baseline
 criteria = ~isnan(data.values.hazard);
@@ -22,7 +22,7 @@ lm_table = table();
 lm_table.FR = data.epochs.baseline(criteria)' + data.epochs.saccade_on(criteria)'; % Add back baseline
 lm_table.Base = data.epochs.baseline(criteria)'; % Baseline
 lm_table(isnan(data.ids.sample_id(criteria)),:) = []; % remove trials where target id didn't exist
-unit_table.saccade_evoked_p(unit_num) = ranksum(lm_table.FR,lm_table.Base); % grouping rather than continuous is probably more appropriate
+unit_table.saccade_evoked_p(unit_num) = signrank(lm_table.FR,lm_table.Base); % grouping rather than continuous is probably more appropriate
 
 %% Check for hazard-dependent visual evoked activity
 criteria = ~isnan(data.values.hazard);

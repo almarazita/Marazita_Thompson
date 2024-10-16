@@ -1,11 +1,11 @@
 function tmp = new_epochData(data,unit_idx,baseline_sub)
-%% function [data] = epoch_data(data,unit_idx,baseline_sub)
-% epochs data from AODR task based on multiple events combinations.
+%% function [data] = epochData(data,unit_idx,baseline_sub)
+% epochs data from AODR task based on multiple event combinations.
 % base_line sub indicates whether the epoched data should be baseline
-% subtracted or not. The data is assumed to be in "session" format, so you
-% need to specify the unit index in the binned spike matrix.
+% subtracted or not. I believe you can use either "session" data where the
+% binned spikes matrix contains multiple units in , or "unit" data where the 
 
-valid = ~isnan(data.times.('sample_on'));
+valid = ~isnan(data.times.('sample_on')) & ~isnan(data.times.('sac_on'));
 tmp = data;
 tmp.binned_spikes = tmp.binned_spikes(unit_idx,:,valid); % unit x ms x trial
 tmp.baseline_pupil = tmp.baseline_pupil(valid,:);
