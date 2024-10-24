@@ -78,8 +78,10 @@ for tr = 1:num_trials
     if any(~isnan(standardized(tr, :))) % Ensure there are non-NaN values
         % smoothed_data(tr, :) = conv(standardized(tr, :), ...
         %     kernel, 'same');
+        % Pad with NaNs
+        padded_data = [nan(1, bin_width-1), standardized(tr, :)];
         % smoothed_data(tr, :) = filter(kernel, 1,standardized(tr, :));
-        smoothed_data(tr, :) = movmean(standardized(tr, :), bin_width);
+        % smoothed_data(tr, :) = movmean(standardized(tr, :), bin_width);
     end
 end
 data.cleaned_pupil = smoothed_data; % Add to struct
