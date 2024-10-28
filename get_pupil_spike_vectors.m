@@ -1,15 +1,21 @@
-function results = get_pupil_spike_vectors(all_sessions)
+function results = get_pupil_spike_vectors(all_sessions, method)
 %% Returns baseline and evoked pupil and firing rate data for each session
 %  to use for correlation analyses
 %  all_sessions is the 94 x 1 cell array all_pyr_cleaned_data returned by
 %  new_loadClean
+
+% Select method for computing evoked pupil response
+valid_methods = ["bs", "change"];
+if isempty(method) || ~ismember(method, valid_methods)
+    method = "bs";
+end
 
 % Initialize variables
 num_sessions = length(all_sessions);
 
 all_baseline_pupil = cell(num_sessions, 1);
 all_residual_baseline_pupil = cell(num_sessions, 1);
-all_bs_evoked_pupil = cell(num_sessions, 1);
+all_evoked_pupil = cell(num_sessions, 1);
 
 all_baseline_fr = cell(num_sessions, 1);
 all_residual_baseline_fr = cell(num_sessions, 1);
@@ -66,7 +72,9 @@ for i = 1:num_sessions
     % arrays
     all_baseline_pupil{i} = cur_session.baseline_pupil;
     all_residual_baseline_pupil{i} = residuals_baseline_pupil;
-    all_bs_evoked_pupil{i} = cur_session.bs_evoked_pupil;
+    if method == "bs"
+        all_evoked_pupil{i} = cur_session.bs_evoked_pupil;
+    end
 
     all_baseline_fr{i} = baseline_fr;
     all_residual_baseline_fr{i} = baseline_fr_resid;
@@ -74,12 +82,17 @@ for i = 1:num_sessions
 
 end
 
+% Pupil change method returns a cell array for all sessions
+if method == "change"
+    all_evoked_pupil = get_pupil_change(all_sessions);
+end
+
 % Compile data into single struct to return
 results = struct();
 
 results.all_baseline_pupil = all_baseline_pupil;
 results.all_residual_baseline_pupil = all_residual_baseline_pupil;
-results.all_bs_evoked_pupil = all_bs_evoked_pupil;
+results.all_evoked_pupil = all_evoked_pupil;
 
 results.all_baseline_fr = all_baseline_fr;
 results.all_residual_baseline_fr = all_residual_baseline_fr;

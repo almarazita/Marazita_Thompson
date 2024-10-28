@@ -1,7 +1,7 @@
 %% Plot correlations between pupil diameter and firing rate
 %% Setup
 % Get data
-results = get_pupil_spike_vectors(all_pyr_cleaned_data);
+results = get_pupil_spike_vectors(all_pyr_cleaned_data, "change");
 num_sessions = length(all_pyr_cleaned_data);
 overall_unit = 1;
 
@@ -24,7 +24,7 @@ for i = 1:num_sessions
 
     % 1) Baseline-evoked pupil
     residuals_baseline_pupil = results.all_residual_baseline_pupil{i};
-    bs_evoked_pupil = results.all_bs_evoked_pupil{i};
+    bs_evoked_pupil = results.all_evoked_pupil{i};
     [rho, pval] = corr(residuals_baseline_pupil, bs_evoked_pupil,...
         'Type', 'Spearman', 'Rows', 'complete');
     baseline_evoked_pupil(i) = rho;
@@ -165,7 +165,7 @@ scatter(xaxis(significant_idx), baseline_evoked_pupil(significant_idx), 50, ...
     'o', 'MarkerFaceColor', [0 174 239]./255, 'MarkerEdgeColor',...
     'none', 'MarkerFaceAlpha', 1);
 scatter(xaxis(~significant_idx), baseline_evoked_pupil(~significant_idx), 50, ...
-    'o', 'MarkerEdgeColor', [0 174 239]./255, 'MarkerEdgeColor',...
+    'o', 'MarkerFaceColor', [0 174 239]./255, 'MarkerEdgeColor',...
     'none', 'MarkerFaceAlpha', 0.2);
 median_pval = signtest(baseline_evoked_pupil);
 if median_pval < 0.01
@@ -223,7 +223,7 @@ scatter(xaxis(significant_idx), baseline_pupil_baseline_FR(significant_idx), 50,
     'o', 'MarkerFaceColor', [0.5 0.5 0.5], 'MarkerEdgeColor',...
     'none', 'MarkerFaceAlpha', 1);
 scatter(xaxis(~significant_idx), baseline_pupil_baseline_FR(~significant_idx), 50, ...
-    'o', 'MarkerEdgeColor', [0.5 0.5 0.5], 'MarkerEdgeColor',...
+    'o', 'MarkerFaceColor', [0.5 0.5 0.5], 'MarkerEdgeColor',...
     'none', 'MarkerFaceAlpha', 0.3);
 median_pval = signtest(baseline_pupil_baseline_FR);
 if median_pval < 0.01

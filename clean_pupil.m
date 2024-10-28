@@ -95,7 +95,6 @@ if will_plot
         while all(isnan(pupil_data(rand_trial, :))) || data.ids.score(rand_trial) < 0
             rand_trial = randperm(num_trials, 1);
         end
-        rand_trial = 369;
         original_trace = pupil_data(rand_trial, :);
         z_score_trace = z_scores(rand_trial, :);
         standardized_trace = standardized(rand_trial, :);
@@ -142,37 +141,41 @@ end
 data.baseline_pupil = baseline_pupil;
 
 %% 6) Get evoked pupil
-%% Visualize pupil data to choose when to average over
+%% 6a) Visualize pupil data to choose when to average over
 % Extract evoked, which is sample_on out to 1,000 ms.
 % Use raw data just for visualization purposes
-raw_pupil_data = data.signals.data(:, 3);
-min_evoked_start = min(sample_on_idxs);
-max_evoked_end = max(cellfun(@length, raw_pupil_data));
-evoked_pupil = nan(num_trials, max_evoked_end-min_evoked_start);
-for tr = 1:num_trials
-    sample_on_idx = sample_on_idxs(tr);
-    last_frame = length(raw_pupil_data{tr});
-    if ~isnan(sample_on_idx)
-        evoked_pupil(tr, 1:last_frame-sample_on_idx+1) = raw_pupil_data{tr}(sample_on_idx:last_frame)';
+% raw_pupil_data = data.signals.data(:, 3);
+if will_plot
+    min_evoked_start = min(sample_on_idxs);
+    max_evoked_end = num_frames;
+    evoked_pupil = nan(num_trials, max_evoked_end-min_evoked_start);
+    for tr = 1:num_trials
+        sample_on_idx = sample_on_idxs(tr);
+        last_frame = length(smoothed_data(tr,:));
+        if ~isnan(sample_on_idx)
+            evoked_pupil(tr, 1:last_frame-sample_on_idx+1) = smoothed_data(tr,sample_on_idx:last_frame);
+        end
+    end
+    
+    % Choose a trial (row) at random
+    num_plots = input('How many random trials do you want to check? ');
+    for cur_plot = 1:num_plots
+        rand_trial = randperm(num_trials, 1);
+        while all(isnan(pupil_data(rand_trial, :))) || data.ids.score(rand_trial) < 0
+            rand_trial = randperm(num_trials, 1);
+        end
+        figure;
+        hold on;
+        plot(evoked_pupil(rand_trial, :), 'b-', 'LineWidth', 2);
+        xlabel('Time (ms)');
+        ylabel('Evoked Pupil Diameter')
+        title(['Trial ', num2str(rand_trial)]);
+        grid on;
+        hold off;
     end
 end
 
-% Choose a trial (row) at random
-rand_trial = randperm(num_trials, 1);
-while all(isnan(pupil_data(rand_trial, :))) || data.ids.score(rand_trial) < 0
-    rand_trial = randperm(num_trials, 1);
-end
-rand_trial = 369;
-figure;
-hold on;
-plot(evoked_pupil(rand_trial, :), 'b-', 'LineWidth', 2);
-xlabel('Time (ms)');
-ylabel('Evoked Pupil Diameter')
-title(['Trial ', num2str(rand_trial)]);
-grid on;
-hold off;
-
-%% Calculate
+%% 6b) Calculate
 % Choose 1000ms window
 % Get max smoothed pupil data from sample_on to 1000ms past that to get
 % evoked value
