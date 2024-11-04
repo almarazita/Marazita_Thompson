@@ -98,16 +98,7 @@ for i = 1:num_sessions
     end
 
     %% Plot pupil data for session
-    % p = plot_pupil(cur_session);
-    % 
-    % % Save as PDF
-    % filename = cur_session.header.filename;
-    % startIdx = strfind(filename, 'MM');
-    % endIdx = strfind(filename, '.hdf5') - 1;
-    % sessionName = filename(startIdx:endIdx);
-    % pdfFileName = sessionName+"_Pupil.pdf";
-    % exportgraphics(p, pdfFileName, 'ContentType', 'vector');
-    % close(p);
+    plot_pupil(all_pyr_cleaned_data, i, method);
 
 end
 

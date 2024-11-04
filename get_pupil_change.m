@@ -6,8 +6,9 @@ if nargin < 2
     will_plot = false;
 end
 
+%% 1) Visualization
 % if will_plot
-%     %% 1) Visualize each experiment's average pupil response
+%     % Visualize each experiment's average pupil response
 %     % Before computing pupil change, see what the response looks like. Are
 %     % there peaks and troughs?
 %     num_sessions = length(all_pyr_cleaned_data); % Number of sessions
@@ -187,7 +188,7 @@ for i = 1:num_sessions
         sample_on_idx = new_getEventIndex(cur_session, tr, 19);
         if ~isnan(cur_session.bs_evoked_pupil(tr)) % Use same criteria as clean_pupil, will have to change
             evoked_end = sample_on_idx+window;
-            peak = max(cur_session.cleaned_pupil(tr, sample_on_idx:evoked_end));
+            peak = max(nanrunmean(cur_session.cleaned_pupil(tr, sample_on_idx:evoked_end)));
             trough = min(cur_session.cleaned_pupil(tr, sample_on_idx:evoked_end));
             evoked_pupil(tr) = peak - trough;
 
