@@ -1,0 +1,40 @@
+% So right now the pipeline is:
+%% 1) new_loadClean: loads cleane
+new_loadClean
+
+% TO DO: 
+% Clean our directories
+    % 1) Github
+        % a) Lets start making some subfolders
+    % 2) Ensure that we have a folder of raw data (uncleaned) and remove
+        % others we don't need anymore
+    % 3) Ensure we have cleaned data in its own folder
+        % a) Cleaned pupil, cleaned units, only valid trials for all data
+            % structs
+        % b) Remove redundant information to reduce the size of the cleaned
+            % files
+
+%% 2) new_sessionToUnitData: convert cell array of sessions to cell arrays by unit
+[unit_data, unit_table] = new_sessionToUnitData(all_pyr_cleaned_data);
+% remove the session data structure to save memory
+clear all_pyr_cleaned_data
+
+%% 3) new_epochData: segments trials into different averaged epochs (e.g., visual/memory/saccade)
+for u = 1:size(unit_table,1)
+    fprintf('\nEpoching data for unit %d/%d',u,size(unit_table,1));
+    epoched_data(u) = new_epochData(unit_data(u),1,1);
+
+    % TO DO: epoched data will have a different size of many of the fields
+    % - should be fixed above
+
+    %% 4) new_SingleUnitGLMs: run some simple statistics for each unit
+    unit_table = newSingleUnitGLMs(epoched_data(u),unit_table,u);
+
+    %% 5) Create a population data matrix
+        % It might be useful to do this in a separate script or add
+        % conditional argument?
+        % Psuedopopulation/repeated random subsampling
+        % Save the matrix?
+end
+
+
