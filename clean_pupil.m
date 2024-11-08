@@ -145,59 +145,6 @@ data.baseline_pupil = nanmean(data.cleaned_pupil(:, 1:abs(start_offset)),2);
 
 %% 6) Get evoked pupil
 %% Visualize pupil data to choose when to average over
-% % Extract evoked, which is sample_on out to 1,000 ms.
-% % Use raw data just for visualization purposes
-% raw_pupil_data = data.signals.data(:, 3);
-<<<<<<< Updated upstream
-% min_evoked_start = min(sample_on_idxs);
-% max_evoked_end = max(cellfun(@length, raw_pupil_data));
-% evoked_pupil = nan(num_trials, max_evoked_end-min_evoked_start);
-% for tr = 1:num_trials
-%     sample_on_idx = sample_on_idxs(tr);
-%     last_frame = length(raw_pupil_data{tr});
-%     if ~isnan(sample_on_idx)
-%         evoked_pupil(tr, 1:last_frame-sample_on_idx+1) = raw_pupil_data{tr}(sample_on_idx:last_frame)';
-%     end
-% end
-
-% % Choose a trial (row) at random
-% rand_trial = randperm(num_trials, 1);
-% while all(isnan(pupil_data(rand_trial, :))) || data.ids.score(rand_trial) < 0
-%     rand_trial = randperm(num_trials, 1);
-% end
-% figure;
-% hold on;
-% plot(evoked_pupil(rand_trial, :), 'b-', 'LineWidth', 2);
-% xlabel('Time (ms)');
-% ylabel('Evoked Pupil Diameter')
-% title(['Trial ', num2str(rand_trial)]);
-% grid on;
-% hold off;
-
-%% Calculate
-% Choose 1000ms window
-% Average smoothed pupil data from sample_on to 1000ms past that to get
-% average evoked value
-window = 1000;
-evoked_pupil = nan(num_trials, 1);
-for tr = 1:num_trials
-    sample_on_idx = sample_on_idxs(tr);
-    if ~isnan(sample_on_idx) && ~isnan(data.ids.choice(tr))
-        evoked_end = sample_on_idx+window;
-        if sac_on_idxs(tr) < evoked_end
-            fprintf('Trial %d is missing %d frames in average', tr, evoked_end-sac_on_idxs(tr));
-        end
-        if evoked_end > length(data.cleaned_pupil(tr,:))
-            fprintf('Trial %d does not have 1000 ms of data after sample_on\n', tr);
-            continue;
-        end
-        evoked_pupil(tr) = max(nanrunmean(data.cleaned_pupil(tr, sample_on_idx:evoked_end), 50));
-    end
-end
-evoked_pupil = evoked_pupil - baseline_pupil;
-data.bs_evoked_pupil = evoked_pupil;
-=======
-
 window = 1000;
 evoked_pupil = data.cleaned_pupil(:,abs(start_offset)+1:abs(start_offset)+window+1);
 for tr = 1:num_trials
@@ -226,4 +173,3 @@ end
 data.bs_evoked_pupil = evoked_pupil - data.baseline_pupil;
 
 end
->>>>>>> Stashed changes
