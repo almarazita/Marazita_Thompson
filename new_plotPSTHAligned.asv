@@ -15,12 +15,16 @@ end
 
 event_idx = round(data.times.(event_code)*1000);
 event_idx = event_idx(~isnan(data.times.(event_code)));
-if ndims(data.binned_spikes)<3
-    unit_spikes = squeeze(data.binned_spikes(:,~isnan(data.times.(event_code)))); % ms x trial
-else
-    unit_spikes = squeeze(data.binned_spikes(1,:,~isnan(data.times.(event_code)))); % unit x ms x trial
-end
+if size*()
+unit_spikes = squeeze(data.binned_spikes(:,~isnan(data.times.(event_code)))); % ms x trial
 
+% You should be careful here. If the size of your shift relative to the
+% size of your array, and the window width, is too large you could be averaging
+% beginning and end trial spikes
+% if window_width > (size(unit_spikes,1) - max(event_idx) + window_width/2)
+%     warning('Your window width or alignment shift is too large and some mean values will be contaminated')
+% end
+% tmp = cell2mat(arrayfun(@(x) circshift(unit_spikes(:,x),[-1*(event_idx(x)+1)+window_width/2])',(1:numel(event_idx))','un',0))';
 tmp2 = nan(window_width+1,size(unit_spikes,2));
 for t_num = 1:size(unit_spikes,2)
     % an obvious note that if you want window_width/2 time points before an event, then you have window_width/2 + 1 indices including the event 
