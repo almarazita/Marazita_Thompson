@@ -7,7 +7,6 @@ function data = clean_pupil(data, start_code, end_code, will_plot)
 % There does not seem to be a fixation acquired code? So we must use sample
 % on with an offset.
 start_offset = -300; % ms to include before the start code.
-end_offset = 100; %ms to include after the end code.
 
 % Default to not plotting
 if nargin < 4
@@ -28,7 +27,7 @@ start_idx = start_idx + abs(data.times.('trial_start')*1000);
 start_idx = round(start_idx);
 
 % Get the index of the end time for each trial
-end_idx = round(data.times.(end_code)*1000) + end_offset + 1; % The first element is time 0 so add 1
+end_idx = round(data.times.(end_code)*1000) + 1; % The first element is time 0 so add 1
 end_idx = end_idx(~isnan(data.times.(end_code)));
 % Adjust for non-zero start time
 end_idx = end_idx + abs(data.times.('trial_start')*1000);
@@ -52,9 +51,7 @@ for tr = 1:num_trials
     pupil_data(tr, 1:(end_idx(tr) - start_idx(tr))+1) = tr_pupil_data(start_idx(tr):end_idx(tr));
 
     % Update all the signal data
-    data.signals.data{tr,1} = data.signals.data{tr,1}(start_idx(tr):end_idx(tr));
-    data.signals.data{tr,2} = data.signals.data{tr,2}(start_idx(tr):end_idx(tr));
-    data.signals.data{tr,3} = data.signals.data{tr,3}(start_idx(tr):end_idx(tr));
+    data.signals.data{tr,1}
 end
 
 %% 2) Z-score
@@ -85,7 +82,7 @@ standardized = z_scores - avg_pupil_trace;
 % Smooth using a boxcar filter with 151ms window.
 % Define the boxcar filter parameters
 bin_width = 151; % Window width in ms
-kernel = ones(1, bin_width); % Boxcar kernel
+kernel = ones(1, bin_width) / bin_width; % Boxcar kernel (normalized)
 
 % Get the number of trials and time points
 [num_trials, num_frames] = size(standardized);
@@ -97,8 +94,10 @@ data.cleaned_pupil = nan(num_trials, num_frames);
 % Apply the smoothing to each trial (row)
 for tr = 1:num_trials
     if any(~isnan(standardized(tr, :))) % Ensure there are non-NaN values
-        smoothed_data(tr, :) = conv(standardized(tr, :), ...
-            kernel / bin_width, 'same');
+        % smoothed_data(tr, :) = conv(standardized(tr, :), ...
+        %     kernel, 'same');
+        % smoothed_data(tr, :) = filter(kernel, 1,standardized(tr, :));
+        smoothed_data(tr, :) = movmean(standardized(tr, :), bin_width);
     end
 end
 data.cleaned_pupil = smoothed_data; % Add to struct
@@ -144,59 +143,10 @@ end
 data.baseline_pupil = nanmean(data.cleaned_pupil(:, 1:abs(start_offset)),2);
 
 %% 6) Get evoked pupil
-%% Visualize pupil data to choose when to average over
-% % Extract evoked, which is sample_on out to 1,000 ms.
-% % Use raw data just for visualization purposes
+%% 6a) Visualize pupil data to choose when to average over
+% Extract evoked, which is sample_on out to 1,000 ms.
+% Use raw data just for visualization purposes
 % raw_pupil_data = data.signals.data(:, 3);
-<<<<<<< Updated upstream
-% min_evoked_start = min(sample_on_idxs);
-% max_evoked_end = max(cellfun(@length, raw_pupil_data));
-% evoked_pupil = nan(num_trials, max_evoked_end-min_evoked_start);
-% for tr = 1:num_trials
-%     sample_on_idx = sample_on_idxs(tr);
-%     last_frame = length(raw_pupil_data{tr});
-%     if ~isnan(sample_on_idx)
-%         evoked_pupil(tr, 1:last_frame-sample_on_idx+1) = raw_pupil_data{tr}(sample_on_idx:last_frame)';
-%     end
-% end
-
-% % Choose a trial (row) at random
-% rand_trial = randperm(num_trials, 1);
-% while all(isnan(pupil_data(rand_trial, :))) || data.ids.score(rand_trial) < 0
-%     rand_trial = randperm(num_trials, 1);
-% end
-% figure;
-% hold on;
-% plot(evoked_pupil(rand_trial, :), 'b-', 'LineWidth', 2);
-% xlabel('Time (ms)');
-% ylabel('Evoked Pupil Diameter')
-% title(['Trial ', num2str(rand_trial)]);
-% grid on;
-% hold off;
-
-%% Calculate
-% Choose 1000ms window
-% Average smoothed pupil data from sample_on to 1000ms past that to get
-% average evoked value
-window = 1000;
-evoked_pupil = nan(num_trials, 1);
-for tr = 1:num_trials
-    sample_on_idx = sample_on_idxs(tr);
-    if ~isnan(sample_on_idx) && ~isnan(data.ids.choice(tr))
-        evoked_end = sample_on_idx+window;
-        if sac_on_idxs(tr) < evoked_end
-            fprintf('Trial %d is missing %d frames in average', tr, evoked_end-sac_on_idxs(tr));
-        end
-        if evoked_end > length(data.cleaned_pupil(tr,:))
-            fprintf('Trial %d does not have 1000 ms of data after sample_on\n', tr);
-            continue;
-        end
-        evoked_pupil(tr) = max(nanrunmean(data.cleaned_pupil(tr, sample_on_idx:evoked_end), 50));
-    end
-end
-evoked_pupil = evoked_pupil - baseline_pupil;
-data.bs_evoked_pupil = evoked_pupil;
-=======
 
 window = 1000;
 evoked_pupil = data.cleaned_pupil(:,abs(start_offset)+1:abs(start_offset)+window+1);
@@ -225,5 +175,6 @@ if will_plot
 end
 data.bs_evoked_pupil = evoked_pupil - data.baseline_pupil;
 
+%% TO DO: Do the same thing for the X&Y eye position data
+
 end
->>>>>>> Stashed changes

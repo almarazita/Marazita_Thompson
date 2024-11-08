@@ -20,7 +20,7 @@ if length(hazards) > 1
 else
     hazard_leg = {[num2str(hazards(1)) ' Hazard']};
 end
-window_width = 1000;
+window_width = 600;
 codes = {'sample_on','sac_on'};  %'fp_off','target_off',
 co = {[4 94 167]./255, [194 0 77]./255};
 p=[];
