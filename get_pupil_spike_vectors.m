@@ -5,7 +5,7 @@ function results = get_pupil_spike_vectors(all_sessions, method)
 %  new_loadClean
 
 % Select method for computing evoked pupil response
-valid_methods = ["bs", "change"];
+valid_methods = ["bs", "change", "resid"];
 if isempty(method) || ~ismember(method, valid_methods)
     method = "bs";
 end
@@ -85,6 +85,9 @@ end
 % Pupil change method returns a cell array for all sessions
 if method == "change"
     all_evoked_pupil = get_pupil_change(all_sessions);
+end
+if method == "resid"
+    all_evoked_pupil = get_pupil_resid(all_sessions);
 end
 
 % Compile data into single struct to return

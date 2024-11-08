@@ -2,7 +2,7 @@ function plot_population_pupil(all_pyr_cleaned_data, method, alltrials)
 %% Plot population pupil
 
 % Select method for computing evoked pupil response
-valid_methods = ["bs", "change"];
+valid_methods = ["bs", "change", "resid"];
 if isempty(method) || ~ismember(method, valid_methods)
     method = "bs";
 end
@@ -36,6 +36,9 @@ end
 
 if method == "change"
     pupil_change = get_pupil_change(all_pyr_cleaned_data);
+end
+if method == "resid"
+    pupil_resid = get_pupil_resid(all_pyr_cleaned_data);
 end
 
 % For each session
@@ -77,6 +80,8 @@ for i = 1:num_sessions
             h_data = cur_session.bs_evoked_pupil(cur_hazard == h);
         elseif method == "change"
             h_data = pupil_change{i}(cur_hazard == h);
+        else
+            h_data = pupil_resid{i}(cur_hazard == h);
         end
 
         if h == 0.05

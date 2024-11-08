@@ -1,4 +1,4 @@
-%function get_pupil_bs(all_pyr_cleaned_data)
+function get_pupil_bs(all_pyr_cleaned_data)
 %% Use baseline subtraction to compute the evoked pupil response.
 
 num_sessions = length(all_pyr_cleaned_data);
@@ -77,6 +77,7 @@ for i = 1:num_sessions
     fprintf('Session %d is done.\n', i);
 end
 
+%% Plot population average
 % Convert to matrix
 lens = cellfun(@length, all_betas);
 nonzero_lens = lens(lens > 0);

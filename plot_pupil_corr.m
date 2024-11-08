@@ -1,7 +1,9 @@
+function plot_pupil_corr(all_pyr_cleaned_data, method)
 %% Plot correlations between pupil diameter and firing rate
+
 %% Setup
 % Get data
-results = get_pupil_spike_vectors(all_pyr_cleaned_data, "change");
+results = get_pupil_spike_vectors(all_pyr_cleaned_data, method);
 num_sessions = length(all_pyr_cleaned_data);
 overall_unit = 1;
 

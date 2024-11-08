@@ -1,4 +1,4 @@
-%function get_pupil_bs(all_pyr_cleaned_data)
+function get_pupil_bs(all_pyr_cleaned_data)
 %% Use baseline subtraction to compute the evoked pupil response.
 
 num_sessions = length(all_pyr_cleaned_data);
@@ -68,8 +68,13 @@ for i = 1:num_sessions
     plot(xaxis, betas, 'LineWidth', 2);
     xlabel('Time from Cue Onset (ms)');
     ylabel('Pupil-Pupil Beta');
+    filename = cur_session.header.filename;
+    startIdx = strfind(filename, 'MM');
+    endIdx = strfind(filename, '.hdf5') - 1;
+    sessionName = filename(startIdx:endIdx);
+    sgtitle(sessionName, 'Interpreter', 'none')
 
-    fprintf('Session %d is done.\n")
+    fprintf('Session %d is done.\n', i);
 end
 
 % Convert to matrix

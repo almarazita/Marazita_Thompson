@@ -2,7 +2,7 @@ function [fig] = plot_pupil(all_pyr_cleaned_data, session_num, method, will_save
 %% Plot cleaned baseline and evoked pupil data for a session, optionally saving as PDF
 
 % Select method for computing evoked pupil response
-valid_methods = ["bs", "change"];
+valid_methods = ["bs", "change", "resid"];
 if isempty(method) || ~ismember(method, valid_methods)
     method = "bs";
 end
@@ -34,11 +34,13 @@ title('Baseline Pupil Drift');
 mdlBaseline = fitlm(data_w_pupil.times.trial_begin, data_w_pupil.baseline_pupil);
 residualsBaseline = mdlBaseline.Residuals.Raw;
 if method == "bs"
-    evoked = data_w_pupil.bs_evoked_pupil
-end
-if method == "change"
+    evoked = data_w_pupil.bs_evoked_pupil;
+elseif method == "change"
     all_changes = get_pupil_change(all_pyr_cleaned_data);
     evoked = all_changes{session_num};
+else
+    all_resids = get_pupil_resid(all_pyr_cleaned_data);
+    evoked = all_resids{session_num};
 end
 % Plot
 subplot(2, 2, 2);

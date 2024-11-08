@@ -135,7 +135,7 @@ baseline_pupil = nan(num_trials, 1);
 for tr = 1:num_trials
     sample_on_idx = sample_on_idxs(tr);
     if ~isnan(sample_on_idx) && ~isnan(data.ids.choice(tr))
-        baseline_pupil(tr) = nanmean(data.cleaned_pupil(tr, 1:sample_on_idx-500));
+        baseline_pupil(tr) = nanmean(data.cleaned_pupil(tr, 1:sample_on_idx-300));
     end
 end
 data.baseline_pupil = baseline_pupil;

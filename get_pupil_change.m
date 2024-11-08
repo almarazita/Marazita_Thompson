@@ -188,7 +188,7 @@ for i = 1:num_sessions
         sample_on_idx = new_getEventIndex(cur_session, tr, 19);
         if ~isnan(cur_session.bs_evoked_pupil(tr)) % Use same criteria as clean_pupil, will have to change
             evoked_end = sample_on_idx+window;
-            peak = max(nanrunmean(cur_session.cleaned_pupil(tr, sample_on_idx:evoked_end)));
+            peak = max(nanrunmean(cur_session.cleaned_pupil(tr, sample_on_idx:evoked_end), 50));
             trough = min(cur_session.cleaned_pupil(tr, sample_on_idx:evoked_end));
             evoked_pupil(tr) = peak - trough;
 
