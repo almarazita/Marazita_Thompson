@@ -8,6 +8,8 @@ clc
 %% 1) new_loadClean: loads cleaned AODR that only contains units of interest
 new_loadClean
 
+% OR Run new_clean.m to generate the cleaned data structures, then load.
+
 % TO DO: 
 % Clean our directories
     % 1) Github
