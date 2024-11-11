@@ -1,24 +1,39 @@
-function plot_pupil(data_w_pupil)
-%% Plot cleaned baseline and evoked pupil data
+function [fig] = plot_pupil(all_pyr_cleaned_data, data_w_pupil, method, will_save)
+%% Plot cleaned baseline and evoked pupil data for a session, optionally saving as PDF
+
+% Select method for computing evoked pupil response
+valid_methods = ["bs", "change"];
+if isempty(method) || ~ismember(method, valid_methods)
+    method = "bs";
+end
+
+% Default to not saving
+if nargin < 2
+    will_save = false;
+end
 
 % Create figure
-figure;
+fig = figure;
 
 %% 1) Baseline pupil vs. time
 % Plot
 subplot(2, 2, 1);
 scatter(data_w_pupil.times.trial_begin, data_w_pupil.baseline_pupil, ...
-    50, 'filled', 'MarkerFaceColor', 'k');
+    30, 'filled', 'MarkerFaceColor', 'k');
 yline(0, 'k--', 'LineWidth', 1.5);
 % Add labels
 xlabel('Trial Start Time (s)');
 ylabel('Baseline Pupil Diameter');
 title('Baseline Pupil Drift');
 
-%% 2) Baseline-subtracted evoked vs. baseline residuals
-% Regress baseline against time
+%% 2) Evoked vs. baseline residuals
+% Regress baseline against time and get evoked with chosen method
 mdlBaseline = fitlm(data_w_pupil.times.trial_begin, data_w_pupil.baseline_pupil);
 residualsBaseline = mdlBaseline.Residuals.Raw;
+if method == "bs"
+    evoked = data_w_pupil.bs_evoked_pupil
+end
+if method == ""
 % Plot
 subplot(2, 2, 2);
 co = {[4 94 167]./255, [194 0 77]./255}; % Blue = low, red = high
@@ -33,7 +48,8 @@ for tr = 1:num_trials
         colors(tr, :) = [0, 0, 0];
     end
 end
-scatter(residualsBaseline, data_w_pupil.bs_evoked_pupil, 50, colors, 'filled');
+scatter(residualsBaseline, data_w_pupil.bs_evoked_pupil, 50, colors,...
+    'filled', 'MarkerEdgeColor', 'w', 'LineWidth', 0.5);
 % Label
 yline(0, 'k--', 'LineWidth', 1.5);
 xlabel('Residual Baseline Pupil Diameter');
@@ -59,14 +75,16 @@ end
 % Plot
 subplot(2, 2, 3);
 for i = 1:num_hazards
-    yline(median_baseline(i), 'LineWidth', 2, 'Color', co{i}); % Median line
-    hold on;
     h = hazards(i);
-    scatter(h + (rand(sum(data_w_pupil.values.hazard == h), 1) - 0.5) * 0.3, ...
+    scatter(h + (rand(sum(data_w_pupil.values.hazard == h), 1) - 0.5) * 0.25, ...
         residualsBaseline(data_w_pupil.values.hazard == h), ...
         50, co{i}, 'filled', 'MarkerFaceAlpha', 0.5); % Jittered data points
     hold on;
+    line([-0.165, 0.165] + h, [median_baseline(i), median_baseline(i)],...
+        'LineWidth', 3, 'Color', 'k'); % Median line
+    hold on;
 end
+yline(0, 'k--', 'LineWidth', 1.5); % 0 line
 % Add labels
 xlabel('Switch Rate');
 ylabel('Residual Baseline Pupil Diameter');
@@ -83,12 +101,16 @@ end
 % Plot
 subplot(2, 2, 4);
 for i = 1:num_hazards
-    line([] median_evoked(i), 'LineWidth', 2, 'Color', co{i}); % Median line
     h = hazards(i);
-    scatter(h + (rand(sum(data_w_pupil.values.hazard == h), 1) - 0.5) * 0.3, ...
+    scatter(h + (rand(sum(data_w_pupil.values.hazard == h), 1) - 0.5) * 0.25, ...
         data_w_pupil.bs_evoked_pupil(data_w_pupil.values.hazard == h), ...
         50, co{i}, 'filled', 'MarkerFaceAlpha', 0.5); % Jittered data points
+    hold on;
+    line([-0.165, 0.165] + h, [median_evoked(i), median_evoked(i)],...
+        'LineWidth', 3, 'Color', 'k'); % Median line
+    hold on;
 end
+yline(0, 'k--', 'LineWidth', 1.5); % 0 line
 % Add labels
 xlabel('Switch Rate');
 ylabel('Evoked Pupil Diameter');
@@ -100,3 +122,10 @@ startIdx = strfind(filename, 'MM');
 endIdx = strfind(filename, '.hdf5') - 1;
 sessionName = filename(startIdx:endIdx);
 sgtitle({sessionName, 'Pupil Data'}, 'Interpreter', 'none')
+
+%% Optionally, save as PDF
+if will_save
+    pdfFileName = sessionName+"_Pupil.pdf";
+    exportgraphics(fig, pdfFileName, 'ContentType', 'vector');
+    close(fig);
+end

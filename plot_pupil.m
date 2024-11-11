@@ -1,10 +1,19 @@
-function [fig] = plot_pupil(data_w_pupil, will_save)
-%% Plot cleaned baseline and evoked pupil data, optionally saving as PDF
+function [fig] = plot_pupil(all_pyr_cleaned_data, session_num, method, will_save)
+%% Plot cleaned baseline and evoked pupil data for a session, optionally saving as PDF
+
+% Select method for computing evoked pupil response
+valid_methods = ["bs", "change", "resid"];
+if isempty(method) || ~ismember(method, valid_methods)
+    method = "bs";
+end
 
 % Default to not saving
-if nargin < 2
+if nargin < 4
     will_save = false;
 end
+
+% Select session
+data_w_pupil = all_pyr_cleaned_data{session_num};
 
 % Create figure
 fig = figure;
@@ -16,14 +25,23 @@ scatter(data_w_pupil.times.trial_begin, data_w_pupil.baseline_pupil, ...
     30, 'filled', 'MarkerFaceColor', 'k');
 yline(0, 'k--', 'LineWidth', 1.5);
 % Add labels
-xlabel('Trial Start Time (s)');
+xlabel('Trial Start Time (ms)');
 ylabel('Baseline Pupil Diameter');
 title('Baseline Pupil Drift');
 
-%% 2) Baseline-subtracted evoked vs. baseline residuals
-% Regress baseline against time
+%% 2) Evoked vs. baseline residuals
+% Regress baseline against time and get evoked with chosen method
 mdlBaseline = fitlm(data_w_pupil.times.trial_begin, data_w_pupil.baseline_pupil);
 residualsBaseline = mdlBaseline.Residuals.Raw;
+if method == "bs"
+    evoked = data_w_pupil.bs_evoked_pupil;
+elseif method == "change"
+    all_changes = get_pupil_change(all_pyr_cleaned_data);
+    evoked = all_changes{session_num};
+else
+    all_resids = get_pupil_resid(all_pyr_cleaned_data);
+    evoked = all_resids{session_num};
+end
 % Plot
 subplot(2, 2, 2);
 co = {[4 94 167]./255, [194 0 77]./255}; % Blue = low, red = high
@@ -38,7 +56,7 @@ for tr = 1:num_trials
         colors(tr, :) = [0, 0, 0];
     end
 end
-scatter(residualsBaseline, data_w_pupil.bs_evoked_pupil, 50, colors,...
+scatter(residualsBaseline, evoked, 50, colors,...
     'filled', 'MarkerEdgeColor', 'w', 'LineWidth', 0.5);
 % Label
 yline(0, 'k--', 'LineWidth', 1.5);
@@ -85,7 +103,7 @@ title('Baseline Pupil by Switch Rate');
 median_evoked = zeros(num_hazards, 1);
 for i = 1:num_hazards
     h = hazards(i);
-    h_data = data_w_pupil.bs_evoked_pupil(data_w_pupil.values.hazard == h);
+    h_data = evoked(data_w_pupil.values.hazard == h);
     median_evoked(i) = nanmedian(h_data);
 end
 % Plot
@@ -93,7 +111,7 @@ subplot(2, 2, 4);
 for i = 1:num_hazards
     h = hazards(i);
     scatter(h + (rand(sum(data_w_pupil.values.hazard == h), 1) - 0.5) * 0.25, ...
-        data_w_pupil.bs_evoked_pupil(data_w_pupil.values.hazard == h), ...
+        evoked(data_w_pupil.values.hazard == h), ...
         50, co{i}, 'filled', 'MarkerFaceAlpha', 0.5); % Jittered data points
     hold on;
     line([-0.165, 0.165] + h, [median_evoked(i), median_evoked(i)],...

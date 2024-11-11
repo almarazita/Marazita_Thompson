@@ -85,7 +85,7 @@ standardized = z_scores - avg_pupil_trace;
 % Smooth using a boxcar filter with 151ms window.
 % Define the boxcar filter parameters
 bin_width = 151; % Window width in ms
-kernel = ones(1, bin_width); % Boxcar kernel
+kernel = ones(1, bin_width) / bin_width; % Boxcar kernel (normalized)
 
 % Get the number of trials and time points
 [num_trials, num_frames] = size(standardized);
@@ -97,8 +97,10 @@ data.cleaned_pupil = nan(num_trials, num_frames);
 % Apply the smoothing to each trial (row)
 for tr = 1:num_trials
     if any(~isnan(standardized(tr, :))) % Ensure there are non-NaN values
-        smoothed_data(tr, :) = conv(standardized(tr, :), ...
-            kernel / bin_width, 'same');
+        % smoothed_data(tr, :) = conv(standardized(tr, :), ...
+        %     kernel, 'same');
+        % smoothed_data(tr, :) = filter(kernel, 1,standardized(tr, :));
+        smoothed_data(tr, :) = movmean(standardized(tr, :), bin_width);
     end
 end
 data.cleaned_pupil = smoothed_data; % Add to struct

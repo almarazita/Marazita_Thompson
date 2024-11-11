@@ -9,7 +9,7 @@ arguments
 end
 
 % Get the name of the session
-filename = data.data.header.filename;
+filename = data.header.filename;
 startIdx = strfind(filename, 'MM');
 endIdx = strfind(filename, '.hdf5') - 1;
 sessionName = filename(startIdx:endIdx);
@@ -24,13 +24,13 @@ end
 
 % For each trial
 % numTrials = length(data(1).analog.data); % Both units have the same analog data, so pull from the first row
-numTrials = data.data.header.numTrials;
-for tr=300:301 % Change
+numTrials = data.header.numTrials;
+for tr=894:895 % Change
     
     % Color-code line by trial type
-    if data.data.values.hazard(tr) == 0.05
+    if data.values.hazard(tr) == 0.05
         color = "b";
-    elseif data.data.values.hazard(tr) == 0.50
+    elseif data.values.hazard(tr) == 0.50
         color = "r";
     else
         color = "k";
@@ -43,7 +43,7 @@ for tr=300:301 % Change
         figure;
 
         % Calculate indexes for trial events
-        event_idxs = arrayfun(@(x) new_getEventIndex(data.data, tr, x), cols);
+        event_idxs = arrayfun(@(x) new_getEventIndex(data, tr, x), cols);
 
     end
 
@@ -52,7 +52,7 @@ for tr=300:301 % Change
     
         % Create a panel and plot the data
         subplot(3,1,col);
-        cur_eye_data = data.data.signals.data(tr,col);
+        cur_eye_data = data.signals.data(tr,col);
         cur_eye_data = cur_eye_data{1};
         plot(cur_eye_data, "Color", color, "LineWidth", 0.1);
 

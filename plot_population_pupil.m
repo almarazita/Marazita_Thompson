@@ -1,25 +1,45 @@
+function plot_population_pupil(all_pyr_cleaned_data, method, alltrials)
 %% Plot population pupil
+
+% Select method for computing evoked pupil response
+valid_methods = ["bs", "change", "resid"];
+if isempty(method) || ~ismember(method, valid_methods)
+    method = "bs";
+end
+
+if isempty(alltrials)
+    alltrials = false;
+end
 
 num_sessions = length(all_pyr_cleaned_data);
 
-% all_hazards = zeros(num_sessions, 1650);
-% low_h_baselines = nan(num_sessions, 1);
-% high_h_baselines = nan(num_sessions, 1);
-% low_h_evokeds = nan(num_sessions, 1);
-% high_h_evokeds = nan(num_sessions, 1);
+all_hazards = zeros(num_sessions, 1650);
+if ~alltrials
+    low_h_baselines = nan(num_sessions, 1);
+    high_h_baselines = nan(num_sessions, 1);
+    low_h_evokeds = nan(num_sessions, 1);
+    high_h_evokeds = nan(num_sessions, 1);
+else
+    total_trials = 0;
+    for i = 1:num_sessions
+        total_trials = total_trials + all_pyr_cleaned_data{i}.header.numTrials;
+    end
+    
+    low_h_baselines = nan(total_trials, 1);
+    high_h_baselines = nan(total_trials, 1);
+    low_h_evokeds = nan(total_trials, 1);
+    high_h_evokeds = nan(total_trials, 1);
 
-total_trials = 0;
-for i = 1:num_sessions
-    total_trials = total_trials + all_pyr_cleaned_data{i}.header.numTrials;
+    low_h_tr = 1; % Keep track of position in master list
+    high_h_tr = 1;
 end
 
-low_h_baselines = nan(total_trials, 1);
-high_h_baselines = nan(total_trials, 1);
-low_h_evokeds = nan(total_trials, 1);
-high_h_evokeds = nan(total_trials, 1);
-
-low_h_tr = 1; % Keep track of position in master list
-high_h_tr = 1;
+if method == "change"
+    pupil_change = get_pupil_change(all_pyr_cleaned_data);
+end
+if method == "resid"
+    pupil_resid = get_pupil_resid(all_pyr_cleaned_data);
+end
 
 % For each session
 for i = 1:num_sessions
@@ -41,41 +61,49 @@ for i = 1:num_sessions
         % Get the average baseline residual
         h_data = residualsBaseline(cur_hazard == h);
         num_trials = length(h_data);
-        %avg = nanmean(h_data);
         if h == 0.05
-            %low_h_baselines(i) = avg;
-            low_h_baselines(low_h_tr:low_h_tr+num_trials-1) = h_data;
+            if ~alltrials
+                low_h_baselines(i) = nanmean(h_data);
+            else
+                low_h_baselines(low_h_tr:low_h_tr+num_trials-1) = h_data;
+            end
         else
-            %high_h_baselines(i) = avg;
-            high_h_baselines(high_h_tr:high_h_tr+num_trials-1) = h_data;
+            if ~alltrials
+                high_h_baselines(i) = nanmean(h_data);
+            else
+                high_h_baselines(high_h_tr:high_h_tr+num_trials-1) = h_data;
+            end
         end
 
-        % Get the average evoked residual (already baseline-subtracted)
-        h_data = cur_session.bs_evoked_pupil(cur_hazard == h);
-        avg = nanmean(h_data);
-        if h == 0.05
-            %low_h_evokeds(i) = avg;
-            low_h_evokeds(low_h_tr:low_h_tr+num_trials-1) = h_data;
-            low_h_tr = low_h_tr + num_trials;
+        % Get the average evoked
+        if method == "bs"
+            h_data = cur_session.bs_evoked_pupil(cur_hazard == h);
+        elseif method == "change"
+            h_data = pupil_change{i}(cur_hazard == h);
         else
-            %high_h_evokeds(i) = avg;
-            high_h_evokeds(high_h_tr:high_h_tr+num_trials-1) = h_data;
-            high_h_tr = high_h_tr + num_trials;
+            h_data = pupil_resid{i}(cur_hazard == h);
+        end
+
+        if h == 0.05
+            if ~alltrials
+                low_h_evokeds(i) = nanmean(h_data);
+            else
+                low_h_evokeds(low_h_tr:low_h_tr+num_trials-1) = h_data;
+                low_h_tr = low_h_tr + num_trials;
+            end
+        else
+            if ~alltrials
+                high_h_evokeds(i) = nanmean(h_data);
+            else
+                high_h_evokeds(high_h_tr:high_h_tr+num_trials-1) = h_data;
+                high_h_tr = high_h_tr + num_trials;
+            end
         end
 
     end
 
-    %% Plot
-    % p = plot_pupil(cur_session);
-    % 
-    % % Save as PDF
-    % filename = cur_session.header.filename;
-    % startIdx = strfind(filename, 'MM');
-    % endIdx = strfind(filename, '.hdf5') - 1;
-    % sessionName = filename(startIdx:endIdx);
-    % pdfFileName = sessionName+"_Pupil.pdf";
-    % exportgraphics(p, pdfFileName, 'ContentType', 'vector');
-    % close(p);
+    %% Plot pupil data for session
+    plot_pupil(all_pyr_cleaned_data, i, method);
 
 end
 
@@ -147,29 +175,31 @@ end
 
 %% Population median baseline residual by switch rate
 figure;
-% Get switch rates
-co = [[4 94 167]./255; ...
-    [194 0 77]./255]; % Keep switch rate colors consistent
-
 % Get median residual baseline pupil value for each condition
 median_baseline = zeros(2, 1);
 median_baseline(1) = nanmedian(low_h_baselines);
 median_baseline(2) = nanmedian(high_h_baselines);
 % Plot
-baselines = [low_h_baselines, high_h_baselines];
 subplot(2, 2, 1);
-h = [0.05, 0.50];
-violin(baselines, 'xlabel', {'Low Switch', 'High Switch'},...
-    'facecolor', co, 'mc', '', 'medc', 'k');
-% for i = 1:2
-%     h = hazards(i);
-%     scatter(h + (rand(num_sessions, 1) - 0.5) * 0.25,...
-%         baselines(:,i), 50, co{i}, 'filled', 'MarkerFaceAlpha', 0.5); % Jittered data points
-%     hold on;
-%     line([-0.165, 0.165] + h, [median_baseline(i), median_baseline(i)],...
-%         'LineWidth', 3, 'Color', 'k'); % Median line
-%     hold on;
-% end
+baselines = [low_h_baselines, high_h_baselines];
+if alltrials
+    co = [[4 94 167]./255; ...
+        [194 0 77]./255]; % Keep switch rate colors consistent
+    violin(baselines, 'xlabel', {'Low Switch', 'High Switch'},...
+        'facecolor', co, 'mc', '', 'medc', 'k');
+else
+    switch_rates = [0.05, 0.50];
+    for i = 1:2
+        h = switch_rates(i);
+        co = {[4 94 167]./255, [194 0 77]./255};
+        scatter(h + (rand(num_sessions, 1) - 0.5) * 0.25,...
+            baselines(:,i), 50, co{i}, 'filled', 'MarkerFaceAlpha', 0.5); % Jittered data points
+        hold on;
+        line([-0.165, 0.165] + h, [median_baseline(i), median_baseline(i)],...
+            'LineWidth', 3, 'Color', 'k'); % Median line
+        hold on;
+    end
+end
 yline(0, 'k--', 'LineWidth', 1.5); % 0 line
 % Add labels
 xlabel('Switch Rate');
@@ -177,7 +207,7 @@ ylabel('Average Residual Baseline Pupil Diameter');
 title('Baseline Pupil by Switch Rate');
 ax_handles(1) = gca;
 
-% Bootstrap test statistic
+%% Bootstrap test statistic
 % If value is > 95% 
 % observation = median_baseline(2) - median_baseline(1);
 % all_baselines = [low_h_baselines; high_h_baselines];
@@ -195,31 +225,33 @@ ax_handles(1) = gca;
 % fprintf('p-value: %.4f\n', num_more_extreme/1000);
 
 %% Average baseline residual by switch rate (scatterplot)
-subplot(2,2,2);
-co = {[4 94 167]./255, [194 0 77]./255};
-limits = [-0.6, 1];
-xlim(limits);
-ylim(limits);
-hold on;
-plot(limits, limits, 'k--', 'LineWidth', 1.5);
-fill([limits(1) limits(2) limits(2)],...
-    [limits(1) limits(2) limits(1)], co{1},...
-    'FaceAlpha', 0.3, 'EdgeColor', 'none');
-fill([limits(1) limits(2) limits(1)],...
-    [limits(1) limits(2) limits(2)], co{2},...
-    'FaceAlpha', 0.3, 'EdgeColor', 'none');
-scatter(low_h_baselines, high_h_baselines, 'k', 'filled');
-num_above = sum(high_h_baselines > low_h_baselines);
-num_below = sum(high_h_baselines <= low_h_baselines);
-text(0.2, 0.4,...
-    ['N = ' num2str(num_above)], 'Color', 'k', 'FontSize', 10);
-text(0.4, 0.3,...
-    ['N = ' num2str(num_below)], 'Color', 'k', 'FontSize', 10);
-xlabel('Low switch rate baseline pupil');
-ylabel('High switch rate baseline pupil');
-axis square;
-box on;
-hold off;
+if ~alltrials
+    subplot(2,2,2);
+    co = {[4 94 167]./255, [194 0 77]./255};
+    limits = [-0.6, 1];
+    xlim(limits);
+    ylim(limits);
+    hold on;
+    plot(limits, limits, 'k--', 'LineWidth', 1.5);
+    fill([limits(1) limits(2) limits(2)],...
+        [limits(1) limits(2) limits(1)], co{1},...
+        'FaceAlpha', 0.3, 'EdgeColor', 'none');
+    fill([limits(1) limits(2) limits(1)],...
+        [limits(1) limits(2) limits(2)], co{2},...
+        'FaceAlpha', 0.3, 'EdgeColor', 'none');
+    scatter(low_h_baselines, high_h_baselines, 'k', 'filled');
+    num_above = sum(high_h_baselines > low_h_baselines);
+    num_below = sum(high_h_baselines <= low_h_baselines);
+    text(0.2, 0.4,...
+        ['N = ' num2str(num_above)], 'Color', 'k', 'FontSize', 10);
+    text(0.4, 0.3,...
+        ['N = ' num2str(num_below)], 'Color', 'k', 'FontSize', 10);
+    xlabel('Low switch rate baseline pupil');
+    ylabel('High switch rate baseline pupil');
+    axis square;
+    box on;
+    hold off;
+end
 
 %% Population median evoked pupil by switch rate
 % Get median baseline-sbutracted evoked pupil value for each condition
@@ -229,20 +261,25 @@ median_evoked(2) = nanmedian(high_h_evokeds);
 % Plot
 evokeds = [low_h_evokeds, high_h_evokeds];
 subplot(2, 2, 3);
-co = [[4 94 167]./255; ...
-    [194 0 77]./255];
-violin(evokeds, 'xlabel', {'Low Switch', 'High Switch'},...
-    'facecolor', co, 'mc', '', 'medc', 'k');
-% for i = 1:2
-%     h = hazards(i);
-%     scatter(h + (rand(num_sessions, 1) - 0.5) * 0.25,... % Change to total_trials if plotting that way
-%         evokeds(:,i), ...
-%         50, co{i}, 'filled', 'MarkerFaceAlpha', 0.5); % Jittered data points
-%     hold on;
-%     line([-0.165, 0.165] + h, [median_evoked(i), median_evoked(i)],...
-%         'LineWidth', 3, 'Color', 'k'); % Median line
-%     hold on;
-% end
+if alltrials
+    co = [[4 94 167]./255; ...
+        [194 0 77]./255];
+    violin(evokeds, 'xlabel', {'Low Switch', 'High Switch'},...
+        'facecolor', co, 'mc', '', 'medc', 'k');
+else
+    co = {[4 94 167]./255, [194 0 77]./255};
+    switch_rates = [0.05, 0.50];
+    for i = 1:2
+        h = switch_rates(i);
+        scatter(h + (rand(num_sessions, 1) - 0.5) * 0.25,... % Change to total_trials if plotting that way
+            evokeds(:,i), ...
+            50, co{i}, 'filled', 'MarkerFaceAlpha', 0.5); % Jittered data points
+        hold on;
+        line([-0.165, 0.165] + h, [median_evoked(i), median_evoked(i)],...
+            'LineWidth', 3, 'Color', 'k'); % Median line
+        hold on;
+    end
+end
 yline(0, 'k--', 'LineWidth', 1.5); % 0 line
 % Add labels
 xlabel('Switch Rate');
@@ -250,7 +287,7 @@ ylabel('Average Evoked Pupil Diameter');
 title('Evoked Pupil by Switch Rate');
 ax_handles(2) = gca;
 
-% Bootstrap p-value
+%% Bootstrap p-value
 % observation = median_evoked(2) - median_evoked(1);
 % all_evokeds = [low_h_evokeds; high_h_evokeds];
 % num_more_extreme = 0;
@@ -267,45 +304,48 @@ ax_handles(2) = gca;
 % fprintf('p-value: %.4f\n', num_more_extreme/1000);
 
 %% Average evoked pupil by switch rate (scatterplot)
-% limits = [min([low_h_evokeds; high_h_evokeds])*1.1,...
-%     max([low_h_evokeds; high_h_evokeds])*1.1];
-subplot(2,2,4);
-xlim(limits);
-ylim(limits);
-hold on;
-plot(limits, limits, 'k--', 'LineWidth', 1.5);
-fill([limits(1) limits(2) limits(2)],...
-    [limits(1) limits(2) limits(1)], co{1},...
-    'FaceAlpha', 0.3, 'EdgeColor', 'none');
-fill([limits(1) limits(2) limits(1)],...
-    [limits(1) limits(2) limits(2)], co{2},...
-    'FaceAlpha', 0.3, 'EdgeColor', 'none');
-scatter(low_h_evokeds, high_h_evokeds, 'k', 'filled');
-num_above = sum(high_h_evokeds > low_h_evokeds);
-num_below = sum(high_h_evokeds <= low_h_evokeds);
-text(0.5, 0.7,...
-    ['N = ' num2str(num_above)], 'Color', 'k', 'FontSize', 10);
-text(0.7, 0.5,...
-    ['N = ' num2str(num_below)], 'Color', 'k', 'FontSize', 10);
-xlabel('Low switch rate evoked pupil');
-ylabel('High switch rate evoked pupil');
-axis square;
-box on;
-hold off;
+if ~alltrials
+    subplot(2,2,4);
+    co = {[4 94 167]./255, [194 0 77]./255};
+    xlim(limits);
+    ylim(limits);
+    hold on;
+    plot(limits, limits, 'k--', 'LineWidth', 1.5);
+    fill([limits(1) limits(2) limits(2)],...
+        [limits(1) limits(2) limits(1)], co{1},...
+        'FaceAlpha', 0.3, 'EdgeColor', 'none');
+    fill([limits(1) limits(2) limits(1)],...
+        [limits(1) limits(2) limits(2)], co{2},...
+        'FaceAlpha', 0.3, 'EdgeColor', 'none');
+    scatter(low_h_evokeds, high_h_evokeds, 'k', 'filled');
+    num_above = sum(high_h_evokeds > low_h_evokeds);
+    num_below = sum(high_h_evokeds <= low_h_evokeds);
+    text(0.5, 0.7,...
+        ['N = ' num2str(num_above)], 'Color', 'k', 'FontSize', 10);
+    text(0.7, 0.5,...
+        ['N = ' num2str(num_below)], 'Color', 'k', 'FontSize', 10);
+    xlabel('Low switch rate evoked pupil');
+    ylabel('High switch rate evoked pupil');
+    axis square;
+    box on;
+    hold off;
+end
 
 %% Evoked increase vs. baseline increase
-baseline_increases = high_h_baselines - low_h_baselines;
-evoked_increases = high_h_evokeds - low_h_evokeds;
-figure;
-hold on;
-scatter(baseline_increases, evoked_increases, 'k', 'filled');
-xline(0, 'k--');
-yline(0, 'k--');
-xlabel('Average baseline pupil increase');
-ylabel('Average evoked pupil increase');
-axis square;
-box on;
-hold off;
+if ~alltrials
+    baseline_increases = high_h_baselines - low_h_baselines;
+    evoked_increases = high_h_evokeds - low_h_evokeds;
+    figure;
+    hold on;
+    scatter(baseline_increases, evoked_increases, 'k', 'filled');
+    xline(0, 'k--');
+    yline(0, 'k--');
+    xlabel('Average baseline pupil increase');
+    ylabel('Average evoked pupil increase');
+    axis square;
+    box on;
+    hold off;
+end
 
 %% Whole plot
 % Set y axis limits to be the same

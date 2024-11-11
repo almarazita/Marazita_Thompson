@@ -1,11 +1,11 @@
 function [tmp_mean] = new_plotBaselineDrift_AODR(data,unit,event_code,t_before_event,ax,pltFlg)
 % computes mean firing rates for each trial over time window =
 % t_before_event:event_code
-event_idx = round(data.times.(event_code)*1000);
-event_idx = event_idx(~isnan(data.times.(event_code)));
-unit_spikes = squeeze(data.binned_spikes(unit,:,~isnan(data.times.(event_code)))); % ms x trial
-task_ids = data.ids.task_id(~isnan(data.times.(event_code))); % task ids only for trials without NaNs
-data.values(isnan(data.times.(event_code)),:) = [];
+event_idx = round(data.times.(event_code)*1000); % Event time in ms
+event_idx = event_idx(~isnan(data.times.(event_code))); % Keep non-NaN times
+unit_spikes = squeeze(data.binned_spikes(unit,:,~isnan(data.times.(event_code)))); % ms x trials with non-NaN event times
+task_ids = data.ids.task_id(~isnan(data.times.(event_code))); % Task ids for trials with non-NaN event times
+data.values(isnan(data.times.(event_code)),:) = []; % Keep rows of values for trials with non-NaN event times
 
 if isempty(pltFlg)
     pltFlg = 1;
