@@ -1,4 +1,6 @@
-%plotPolarAligned
+%% TO DO: THIS SCRIPT IS 
+%1) super excessive and messy
+%2) not using the correct times (e.g., the spike time mat is in ms but the time values are in secs)
 
 function p = new_plotPolarAlignedT(data,ecodes,timing,alignment,window_size,num,ax)
 %

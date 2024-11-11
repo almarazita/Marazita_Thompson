@@ -1,72 +1,52 @@
 function data = new_extractAODR_sessionNeural(fileName, monkey, unit_id)
 
-    % ecode names are:
-    %   trial_num, task_id, hazard, correct_target, sample_id, score, 
-    %   choice, RT, sac_endx, sac_endy, t1_x, t1_y, t2_x, t2_y, sample_x, 
-    %   sample_y, session, tacp, llr_for_switch, choice_switch, 
-    %   previous_reward, correct_shown
-    
-    % Get the data
-    [data, obj] = goldLabDataSession.convertSession( ...
-        fileName, ...
-        'tag',          'AODR', ...
-        'monkey',       monkey, ...
-        'sortType',     'Sorted', ...
-        'converter',    'Pyramid', ...
-        'convertSpecs', 'AODR_experiment');
-    
-    % At this point, we do not filter specific neurons of interest so that it is
-    % easy to explore the results of a session (e.g., when sorting units initially)
-    
-    %% Arrange spike time data into a nan-buffed matrix (spike time matrix)
-    % neuron x spike_time x trials
-    relevant_unit = unit_id;
-    if isempty(relevant_unit)
-        relevant_unit = data.spikes.id;
-    end
-    not_relevant_units = ~ismember(data.spikes.id',relevant_unit);
-    data.spikes.data(:,not_relevant_units) = [];
-    data.spikes.channel(not_relevant_units) = [];
-    data.spikes.id(not_relevant_units) = [];
-    
-    n_units = length(data.spikes.id);
-    if n_units == 0
-        warning('No units on the selected channel, exiting')
-        return
-    end
-    
-    % Create matrix with dimension for spike times set to the max length,
-    % pre-filled with nans
-    n_trials = size(data.spikes.data,1);
-    data.spikes.data = table2cell(data.spikes.data);
-    all_max_spikes = cell2mat(cellfun(@(x) size(x,1),data.spikes.data,'UniformOutput',false));
-    max_spikes = max(all_max_spikes,[],"all");
-    data.spike_time_mat = nan(n_units,max_spikes,n_trials);
-    
-    for u = 1:n_units
-        for t = 1:n_trials
-            data.spike_time_mat(u,1:length(data.spikes.data{t,u}),t) = data.spikes.data{t,u};
-        end
-    end
-    
-    % Convert to ms
-    data.spike_time_mat = data.spike_time_mat*1000;
-    
-    %% Binned time course
-    max_time = round(max(data.spike_time_mat(:))); % What is the max spike time - round to nearest ms
-    spikes_idx = round(data.spike_time_mat); % spike times at closest ms
-    bin_width = 50; % ms width of bin (to average over)
-    kernel = ones(1,bin_width); % "boxcar" kernel
-    for u = 1:n_units
-        for t = 1:n_trials
-            spike_counts = histcounts(data.spike_time_mat(u,:,t),0:max_time); % bin spikes into ms bins
-            % smooth using your bin window and assume ms sampling to get spikes
-            % per second for each unit, trial, and time window
-            data.binned_spikes(u,:,t) = convn(spike_counts,kernel,'same')./(bin_width/1000); 
-        end
-    end
+% ecode names are:
+%   trial_num, task_id, hazard, correct_target, sample_id, score,
+%   choice, RT, sac_endx, sac_endy, t1_x, t1_y, t2_x, t2_y, sample_x,
+%   sample_y, session, tacp, llr_for_switch, choice_switch,
+%   previous_reward, correct_shown
 
-    %% Clean pupil data
-    data = clean_pupil(data);
-    
+start_code = 'sample_on';
+end_code = 'sac_on';
+
+%% Get the data
+[data, obj] = goldLabDataSession.convertSession( ...
+    fileName, ...
+    'tag',          'AODR', ...
+    'monkey',       monkey, ...
+    'sortType',     'Sorted', ...
+    'converter',    'Pyramid', ...
+    'convertSpecs', 'AODR_experiment');
+
+%% Set and get valid trials here, so that you don't have trials with
+% just nan's.
+valid = ~isnan(data.times.(start_code)) & ~isnan(data.times.(end_code));
+
+% Remove invalid trials
+data.header.validTrials = sum(valid); % Add but keep original number for reference
+data.ids = data.ids(valid,:);
+data.times = data.times(valid,:);
+data.values = data.values(valid,:);
+data.signals.data = data.signals.data(valid,:);
+data.spikes.data = data.spikes.data(valid,:);
+
+%% Clean spike data
+data = clean_spike(data, unit_id, start_code, end_code);
+
+%% Clean pupil data
+% TO DO: Does clean pupil remove data.signals for memory?
+data = clean_pupil(data, start_code, end_code);
+
+%% Update times
+% So the times need to be updated if we want to use existing scripts
+no_change = {'trial_begin','trial_end', 'trial_wrt', 'fp_on'}; % These values are either global clock times and/or don't need to change
+vars_change = ~ismember(data.times.Properties.VariableNames, no_change); % get all columns that need to be changed
+time_diff = data.times.sample_on(:) - 0.3; % in sec, we have aligned all trials to 300 ms before sample on.
+data.times(:,vars_change) = data.times(:,vars_change) - time_diff;
+data.times.trial_start = data.times.fp_on; % the start time will now be 0 (first index), since the true start time has been cut off
+data.values.saccades_t_start = data.values.saccades_t_start - time_diff;
+data.values.saccades_t_end = data.values.saccades_t_end - time_diff;
+data.values.all_saccades_t_start = data.values.all_saccades_t_start - time_diff;
+data.values.all_saccades_t_end = data.values.all_saccades_t_end - time_diff;
+
 end

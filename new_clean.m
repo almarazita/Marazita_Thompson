@@ -14,7 +14,7 @@ base_directory = ['/Users/lowell/Library/CloudStorage/Box-Box/GoldLab/Data/Physi
 master = readtable(['/Users/lowell/Library/CloudStorage/Box-Box/GoldLab/Analysis/AODR/' ...
     'MrM_Ci_Units.xlsx'], 'Format','auto');
 save_directory = ['/Users/lowell/Library/CloudStorage/Box-Box/GoldLab/Data/Physiology/' ...
-    'AODR/Data/MrM/Converted/Sorted/Mat_Cleaned/']; % location of final cleaned files
+    'AODR/Data/MrM/Converted/Sorted/Mat_Cleaned/All_Cleaned/']; % location of final cleaned files
 
 % Delete Cicero rows and get the list of Mr. M file names
 master(~strcmp(master.Monkey,'MM'),:) = [];
