@@ -1,6 +1,6 @@
 function plotEye(data, byTrial)
 % Plot the position and diameter of the pupil during each trial
-% data is a 1 x 1 struct for a single session
+% data: a 1 x 1 struct for a single session
 
 % Set byTrial to false by default (plot all trials together)
 arguments
@@ -19,19 +19,17 @@ y_labs = ["Horizontal Position (dva)" "Vertical Position (dva)" "Diameter (au)"]
 if byTrial
     event_labs = ["Fixation On", "Sample On", "Fixation Off", "Saccade On", "All Off"];
     cols = [9, 19, 8, 18, 4];
-    event_idxs = zeros(1,4);
 end
 
 % For each trial
-% numTrials = length(data(1).analog.data); % Both units have the same analog data, so pull from the first row
-numTrials = data.header.numTrials;
-for tr=894:895 % Change
+%numTrials = data.header.validTrials;
+for tr=242:242 % Change
     
     % Color-code line by trial type
     if data.values.hazard(tr) == 0.05
-        color = "b";
+        color = [4 94 167]./255;
     elseif data.values.hazard(tr) == 0.50
-        color = "r";
+        color = [194 0 77]./255;
     else
         color = "k";
     end
@@ -72,7 +70,8 @@ for tr=894:895 % Change
 
     % Add title if plotting trial-by-trial
     if byTrial
-        sgtitle({sessionName+" Eye Data", "Trial "+tr}, 'Interpreter', 'none')
+        true_tr = data.values.trial_num(tr);
+        sgtitle({sessionName+" Eye Data", "Trial "+true_tr}, 'Interpreter', 'none')
     end
 
 end

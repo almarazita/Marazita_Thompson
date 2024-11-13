@@ -21,8 +21,20 @@ fig = figure;
 %% 1) Baseline pupil vs. time
 % Plot
 subplot(2, 2, 1);
+co = {[4 94 167]./255, [194 0 77]./255}; % Blue = low, red = high
+num_trials = data_w_pupil.header.validTrials;
+colors = zeros(num_trials, 3);
+for tr = 1:num_trials
+    if data_w_pupil.values.hazard(tr) == 0.05
+        colors(tr, :) = co{1};
+    elseif data_w_pupil.values.hazard(tr) == 0.50
+        colors(tr, :) = co{2};
+    else
+        colors(tr, :) = [0, 0, 0];
+    end
+end
 scatter(data_w_pupil.times.trial_begin, data_w_pupil.baseline_pupil, ...
-    30, 'filled', 'MarkerFaceColor', 'k');
+    30, colors, 'filled');
 yline(0, 'k--', 'LineWidth', 1.5);
 % Add labels
 xlabel('Trial Start Time (ms)');
@@ -44,18 +56,6 @@ else
 end
 % Plot
 subplot(2, 2, 2);
-co = {[4 94 167]./255, [194 0 77]./255}; % Blue = low, red = high
-num_trials = data_w_pupil.header.validTrials;
-colors = zeros(num_trials, 3);
-for tr = 1:num_trials
-    if data_w_pupil.values.hazard(tr) == 0.05
-        colors(tr, :) = co{1};
-    elseif data_w_pupil.values.hazard(tr) == 0.50
-        colors(tr, :) = co{2};
-    else
-        colors(tr, :) = [0, 0, 0];
-    end
-end
 scatter(residualsBaseline, evoked, 50, colors,...
     'filled', 'MarkerEdgeColor', 'w', 'LineWidth', 0.5);
 % Label

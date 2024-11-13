@@ -44,7 +44,7 @@ for i = 1:num_sessions
         % Baseline = average firing rate 300ms before sample_on
         baseline_fr(:, u) = mean(unit_spikes(1:300, :), 1);
         % Evoked = average firing rate 300ms after sample_on
-        evoked_fr(:, u) = mean(unit_spikes(300:600, :), 1);
+        evoked_fr(:, u) = mean(unit_spikes(301:601, :), 1);
 
         % Compute residuals
         mdl_baseline_fr = fitlm(cur_session.times.trial_begin, baseline_fr(:, u));

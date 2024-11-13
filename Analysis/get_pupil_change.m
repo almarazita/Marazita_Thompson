@@ -42,7 +42,7 @@ if will_plot
         cur_session = all_pyr_cleaned_data{i};
 
         % Compute mean and standard error of the mean (SEM)
-        mean_pupil{i} = nanmean(cur_session.cleaned_pupil, 1); % Mean across trials
+        mean_pupil{i} = nanmean(cur_session.cleaned_pupil(cur_session.ids.task_id == 1, :), 1); % Mean across trials
         sem_pupil{i} = nanstd(cur_session.cleaned_pupil, 0, 1) ./ sqrt(sum(~isnan(cur_session.cleaned_pupil), 1)); % SEM
         % By switch rate
         high_h_tr = cur_session.values.hazard == 0.50;
@@ -89,7 +89,7 @@ if will_plot
         hold off;
 
         % Optionally, save as PDF
-        if will_save && subplot_num == 9
+        if will_save && (subplot_num == 9 || i == num_sessions)
             pdfFileName = "avg_evoked_traces_"+num2str(cur_fig)+".pdf";
             exportgraphics(fig, pdfFileName, 'ContentType', 'vector');
             close(fig);

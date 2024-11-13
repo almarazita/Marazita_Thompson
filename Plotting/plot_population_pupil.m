@@ -187,6 +187,7 @@ if alltrials
         [194 0 77]./255]; % Keep switch rate colors consistent
     violin(baselines, 'xlabel', {'Low Switch', 'High Switch'},...
         'facecolor', co, 'mc', '', 'medc', 'k');
+    legend('off');
 else
     switch_rates = [0.05, 0.50];
     for i = 1:2
@@ -242,7 +243,7 @@ if ~alltrials
     scatter(low_h_baselines, high_h_baselines, 'k', 'filled');
     num_above = sum(high_h_baselines > low_h_baselines);
     num_below = sum(high_h_baselines <= low_h_baselines);
-    text(0.2, 0.4,...
+    text(0.1, 0.5,...
         ['N = ' num2str(num_above)], 'Color', 'k', 'FontSize', 10);
     text(0.4, 0.3,...
         ['N = ' num2str(num_below)], 'Color', 'k', 'FontSize', 10);
@@ -266,6 +267,7 @@ if alltrials
         [194 0 77]./255];
     violin(evokeds, 'xlabel', {'Low Switch', 'High Switch'},...
         'facecolor', co, 'mc', '', 'medc', 'k');
+    legend('off');
 else
     co = {[4 94 167]./255, [194 0 77]./255};
     switch_rates = [0.05, 0.50];
@@ -320,7 +322,7 @@ if ~alltrials
     scatter(low_h_evokeds, high_h_evokeds, 'k', 'filled');
     num_above = sum(high_h_evokeds > low_h_evokeds);
     num_below = sum(high_h_evokeds <= low_h_evokeds);
-    text(0.5, 0.7,...
+    text(0.4, 0.8,...
         ['N = ' num2str(num_above)], 'Color', 'k', 'FontSize', 10);
     text(0.7, 0.5,...
         ['N = ' num2str(num_below)], 'Color', 'k', 'FontSize', 10);
