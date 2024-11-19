@@ -90,6 +90,7 @@ if will_plot
 
         % Optionally, save as PDF
         if will_save && (subplot_num == 9 || i == num_sessions)
+            set(fig, 'Position', [373 112.2 886.4 731.2]);
             pdfFileName = "avg_evoked_traces_"+num2str(cur_fig)+".pdf";
             exportgraphics(fig, pdfFileName, 'ContentType', 'vector');
             close(fig);
