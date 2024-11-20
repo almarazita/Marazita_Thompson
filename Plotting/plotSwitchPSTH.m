@@ -10,7 +10,7 @@ if isempty(axs)
 end
 
 % n_units = length(data.spikes.id);
-n_trials = data.header.numTrials;
+n_trials = data.header.validTrials;
 
 %  Compute choice switch (0/1)
 choice = data.ids.choice; % Get the monkey's choice for each trial, 1=T1, 2=T2
@@ -32,7 +32,7 @@ switch_bool(~ismember(choice, [1 2]) | ...
 
 switch_leg = {'No Switch','Switch'};
 
-window_width = 2000;
+window_width = {[300,600],[300,100]}; % for each code, time before, time after
 codes = {'sample_on','sac_on'}; %'fp_off','target_off'
 co = {[.87 .55 .41],[.19 .74 .38]};
 p=[];
@@ -57,7 +57,7 @@ else
             tmp.binned_spikes = squeeze(data.binned_spikes(u,:,criteria));
             tmp.values = data.values(criteria,:);
             tmp.times = data.times(criteria,:);
-            p(s) = plotPSTHAligned(tmp,event_code,window_width,ax,co{s},1);
+            p(s) = plotPSTHAligned(tmp,event_code,window_width{c},ax,co{s},1);
         end
         if isempty(axs)
             filename = data.data.header.filename;

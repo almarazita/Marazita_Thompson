@@ -13,14 +13,14 @@ end
 % end
 
 n_units = length(data.spikes.id);
-n_trials = data.header.numTrials;
+n_trials = data.header.validTrials;
 hazards = nonanunique(data.values.hazard);
 if length(hazards) > 1
     hazard_leg = {[num2str(hazards(1)) ' Hazard'],[ num2str(hazards(2)) ' Hazard']};
 else
     hazard_leg = {[num2str(hazards(1)) ' Hazard']};
 end
-window_width = 600;
+window_width = {[300,1000],[300,100]};
 codes = {'sample_on','sac_on'};  %'fp_off','target_off',
 co = {[4 94 167]./255, [194 0 77]./255};
 p=[];
@@ -40,7 +40,7 @@ for c = 1:length(codes)
         tmp.binned_spikes = squeeze(data.binned_spikes(u,:,criteria));
         tmp.ecodes = data.values(criteria,:);
         tmp.times = data.times(criteria,:);
-        p(h) = plotPSTHAligned(tmp,event_code,window_width,ax,co{h},1);
+        p(h) = plotPSTHAligned(tmp,event_code,window_width{c},ax,co{h},1);
     end
     if isempty(axs)
         filename = data.data.header.filename;

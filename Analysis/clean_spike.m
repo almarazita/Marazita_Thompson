@@ -79,7 +79,8 @@ for u = 1:n_units
         spike_counts = histcounts(data.spike_time_mat(u,:,t),0:max_time); % bin spikes into ms bins
         % smooth using your bin window and assume ms sampling to get spikes
         % per second for each unit, trial, and time window
-        data.binned_spikes(u,:,t) = convn(spike_counts,kernel,'same')./(bin_width/1000);
+        data.binned_spikes(u,:,t) = movmean(spike_counts,bin_width).*1000;
+        % data.binned_spikes(u,:,t) = convn(spike_counts,kernel,'same')./(bin_width/1000);
     end
 end
 
