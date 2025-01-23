@@ -73,7 +73,8 @@ for t_num = 1:size(unit_spikes,2)
         warning(['Time after event code exceeds trial length for trial: ',num2str(t_num)]);
     end
     tmp_trial = unit_spikes(start_ind:end_ind,t_num)';
-    tmp2(window_adj(1)+1:size(tmp_trial,2),t_num) = tmp_trial;
+    %tmp2(window_adj(1)+1:size(tmp_trial,2),t_num) = tmp_trial;
+    tmp2(window_adj(1)+1:window_adj(1)+size(tmp_trial,2),t_num) = tmp_trial;
 end
 if pltFlg
     tmp_mean = mean(tmp2,2,'omitnan'); %mean(tmp(1:window_width+1,:),2,'omitnan');

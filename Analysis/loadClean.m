@@ -3,7 +3,7 @@
 
 % Define filepath to Cleaned Data folder
 % username = input("Enter your username in double quotes: ");
-clean_dir = "C:/Users/marazita/Box/GoldLab/Data/Physiology/AODR/Data/MrM/Converted/Sorted/Mat_Cleaned/All_Cleaned";
+clean_dir = "C:/Users/GoldLab/Box/GoldLab/Data/Physiology/AODR/Data/MrM/Converted/Sorted/Mat_Cleaned/All_Cleaned";
 
 % Get the names of the .mat files in the folder
 folder_struct = dir(clean_dir);

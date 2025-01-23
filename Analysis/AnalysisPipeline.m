@@ -23,14 +23,14 @@ loadClean
             % files
 
 %% 2) new_sessionToUnitData: convert cell array of sessions to cell arrays by unit
-[unit_data, unit_table] = new_sessionToUnitData(all_pyr_cleaned_data);
+[unit_data, unit_table] = sessionToUnitData(all_pyr_cleaned_data);
 % remove the session data structure to save memory
 clear all_pyr_cleaned_data
 
 %% 3) new_epochData: segments trials into different averaged epochs (e.g., visual/memory/saccade)
 for u = 1:size(unit_table,1)
     fprintf('\nEpoching data for unit %d/%d',u,size(unit_table,1));
-    unit_data{u}.epochs = new_epochData(unit_data(u),1,1);
+    unit_data(u).epochs = epochData(unit_data(u),1,1);
 
     % TO DO: 
     % 1) epoched data will have a different size of many of the fields - should be fixed above
@@ -40,7 +40,7 @@ for u = 1:size(unit_table,1)
 
 
     %% 4) new_SingleUnitGLMs: run some simple statistics for each unit
-    unit_table = newSingleUnitGLMs(unit_data(u),unit_table,u);
+    %unit_table = SingleUnitGLMs(unit_data(u),unit_table,u);
 
     %% 5) Create a population data matrix
         % It might be useful to do this in a separate script or add

@@ -22,14 +22,14 @@ tmp.signals = [];
 % Calculate baseline -- very important for comapring between tasks that are
 % blocked in case you want to subtract
 % Gives mean baseline for each trial 300ms prior to sample on.
-epochs.baseline(unit_idx,:) = plotBaselineDrift_AODR(tmp,1,'sample_on',300,[],0);
+tmp.epochs.baseline(unit_idx,:) = plotBaselineDrift_AODR(tmp,1,'sample_on',300,[],0);
 
 if baseline_sub
     tmp.binned_spikes(unit_idx,:,:) = squeeze(tmp.binned_spikes(unit_idx,:,:)) - squeeze(tmp.epochs.baseline(unit_idx,:));
 end
 
 % This will give +- window_width/2 around the event of interest
-window_width = 600;
+window_width = [0, 300];
 
 % Get mean target-on activity for 300 ms after target onset for
 % each trial
