@@ -20,7 +20,7 @@ end_code = 'sac_on';
 
 %% Set and get valid trials here, so that you don't have trials with
 % just nan's.
-valid = ~isnan(data.times.(start_code)) & ~isnan(data.times.(end_code));
+valid = ~isnan(data.times.(start_code)) & ~isnan(data.times.(end_code)) & ~isnan(data.ids.choice);
 
 % Remove invalid trials
 data.header.validTrials = sum(valid); % Add but keep original number for reference
@@ -28,10 +28,14 @@ data.ids = data.ids(valid,:);
 data.times = data.times(valid,:);
 data.values = data.values(valid,:);
 data.signals.data = data.signals.data(valid,:);
-data.spikes.data = data.spikes.data(valid,:);
+if ~isempty(data.spikes)
+    data.spikes.data = data.spikes.data(valid,:);
+end
 
 %% Clean spike data
-data = clean_spike(data, unit_id, start_code, end_code);
+if ~isempty(data.spikes)
+    data = clean_spike(data, unit_id, start_code, end_code);
+end
 
 %% Clean pupil data
 % TO DO: Does clean pupil remove data.signals for memory?
@@ -41,7 +45,7 @@ data = clean_pupil(data, start_code, end_code);
 % So the times need to be updated if we want to use existing scripts
 no_change = {'trial_begin','trial_end', 'trial_wrt', 'fp_on'}; % These values are either global clock times and/or don't need to change
 vars_change = ~ismember(data.times.Properties.VariableNames, no_change); % get all columns that need to be changed
-time_diff = data.times.sample_on(:) - 0.3; % in sec, we have aligned all trials to 300 ms before sample on.
+time_diff = data.times.sample_on(:) - 0.3; % in sec, we have aligned all trials to 100 ms before fix acq.
 data.times(:,vars_change) = data.times(:,vars_change) - time_diff;
 data.times.trial_start = data.times.fp_on; % the start time will now be 0 (first index), since the true start time has been cut off
 data.values.saccades_t_start = data.values.saccades_t_start - time_diff;

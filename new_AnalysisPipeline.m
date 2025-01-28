@@ -8,19 +8,7 @@ clc
 %% 1) new_loadClean: loads cleaned AODR that only contains units of interest
 new_loadClean
 
-% OR Run new_clean.m to generate the cleaned data structures, then load.
-
-% TO DO: 
-% Clean our directories
-    % 1) Github
-        % a) Lets start making some subfolders
-    % 2) Ensure that we have a folder of raw data (uncleaned) and remove
-        % others we don't need anymore
-    % 3) Ensure we have cleaned data in its own folder
-        % a) Cleaned pupil, cleaned units, only valid trials for all data
-            % structs
-        % b) Remove redundant information to reduce the size of the cleaned
-            % files
+% OR Run clean.m to generate the cleaned data structures, then load.
 
 %% 2) new_sessionToUnitData: convert cell array of sessions to cell arrays by unit
 [unit_data, unit_table] = new_sessionToUnitData(all_pyr_cleaned_data);
@@ -37,7 +25,6 @@ for u = 1:size(unit_table,1)
     % 2) either overwrite the unit data (or added epoched data) or clear the unit data since this
     % is super redundant and we end up with identical data, one with an
     % extra field.
-
 
     %% 4) new_SingleUnitGLMs: run some simple statistics for each unit
     unit_table = newSingleUnitGLMs(unit_data(u),unit_table,u);

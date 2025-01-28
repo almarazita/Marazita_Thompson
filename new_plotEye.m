@@ -10,13 +10,14 @@ end
 
 % Get the name of the session
 filename = data.header.filename;
-startIdx = strfind(filename, 'MM');
+startIdx = strfind(filename, 'Anubis');
 endIdx = strfind(filename, '.hdf5') - 1;
 sessionName = filename(startIdx:endIdx);
 
 % Declare variables that will be re-used
 y_labs = ["Horizontal Position (dva)" "Vertical Position (dva)" "Diameter (au)"];
 if byTrial
+<<<<<<< Updated upstream:new_plotEye.m
     event_labs = ["Fixation On", "Sample On", "Fixation Off", "Saccade On", "All Off"];
     cols = [9, 19, 8, 18, 4];
     event_idxs = zeros(1,4);
@@ -26,6 +27,15 @@ end
 % numTrials = length(data(1).analog.data); % Both units have the same analog data, so pull from the first row
 numTrials = data.header.numTrials;
 for tr=894:895 % Change
+=======
+    event_labs = ["Fixation Acq", "Sample On", "Fixation Off", "Saccade On", "All Off"];
+    cols = [5, 8, 11, 10, 4];
+end
+
+% For each trial
+numTrials = data.header.validTrials;
+for tr=1:numTrials % Change
+>>>>>>> Stashed changes:Plotting/plotEye.m
     
     % Color-code line by trial type
     if data.values.hazard(tr) == 0.05
@@ -40,7 +50,7 @@ for tr=894:895 % Change
     if byTrial
 
         % Create a new figure for each trial 
-        figure;
+        % figure;
 
         % Calculate indexes for trial events
         event_idxs = arrayfun(@(x) new_getEventIndex(data, tr, x), cols);
@@ -52,8 +62,12 @@ for tr=894:895 % Change
     
         % Create a panel and plot the data
         subplot(3,1,col);
-        cur_eye_data = data.signals.data(tr,col);
-        cur_eye_data = cur_eye_data{1};
+        if col == 3
+            cur_eye_data = data.cleaned_pupil(tr,:);
+        else
+            cur_eye_data = data.signals.data(tr,col);
+            cur_eye_data = cur_eye_data{1};
+        end
         plot(cur_eye_data, "Color", color, "LineWidth", 0.1);
 
         % Add labels
