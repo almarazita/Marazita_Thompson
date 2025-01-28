@@ -34,23 +34,23 @@ while i < len(filenames):
 print(len(final_filenames), "valid, Plexon-sorted, and non-duplicate files out of", len(filenames), "in directory")
 
 # Re-do sessions that didn't work
-KeyError_redos = ["MM_2023_07_14_D_Rec_V-ProRec_Sorted-01.plx", "MM_2023_07_12_B_Rec_V-ProRec_Sorted-03.plx",
-                  "MM_2023_07_19_Rec_V-ProRec_Sorted-01.plx", "MM_2023_07_17_G_Rec_V-ProRec_Sorted-01.plx",
-                  "MM_2023_07_18_B_Rec_V-ProRec_Sorted-01.plx"]
-working_examples = ["MM_2021_07_15_Sorted-03.plx", "MM_2021_08_04_Sorted-01.plx"]
+#KeyError_redos = ["MM_2023_07_14_D_Rec_V-ProRec_Sorted-01.plx", "MM_2023_07_12_B_Rec_V-ProRec_Sorted-03.plx",
+ #                 "MM_2023_07_19_Rec_V-ProRec_Sorted-01.plx", "MM_2023_07_17_G_Rec_V-ProRec_Sorted-01.plx",
+  #                "MM_2023_07_18_B_Rec_V-ProRec_Sorted-01.plx"]
+#working_examples = ["MM_2021_07_15_Sorted-03.plx", "MM_2021_08_04_Sorted-01.plx"]
 
 # For each Plexon file in dataSearchPath
 for filename in final_filenames:
 
-    if filename in KeyError_redos:
+    #if filename in KeyError_redos:
     #if filename in working_examples:
 
-        print("\n", filename)
-        f = os.path.join(dataSearchPath, filename)
-        outputFname = baseSaveDir+os.path.splitext(filename)[0]+".hdf5"
-        cli.main(["convert", 
-        "--trial-file", outputFname, 
-        "--search-path", pyramidSearchPath, 
-        "--experiment", convertSpecs, 
-        "--readers", 
-        "plexon_reader.plx_file="+dataSearchPath+filename])
+    print("\n", filename)
+    f = os.path.join(dataSearchPath, filename)
+    outputFname = baseSaveDir+os.path.splitext(filename)[0]+".hdf5"
+    cli.main(["convert", 
+    "--trial-file", outputFname, 
+    "--search-path", pyramidSearchPath, 
+    "--experiment", convertSpecs, 
+    "--readers", 
+    "plexon_reader.plx_file="+dataSearchPath+filename])

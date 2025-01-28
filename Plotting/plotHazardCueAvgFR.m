@@ -97,7 +97,8 @@ for a = 1:length(alignments)
     xlabel('Cue Location')
     if isempty(axs)
         title(['Aligned to ' alignment],'Interpreter', 'none')
-        filename = data.data.header.filename;
+        %filename = data.data.header.filename;
+        filename = data.fileName;
         startIdx = strfind(filename, 'MM');
         endIdx = strfind(filename, '.hdf5') - 1;
         sessionName = filename(startIdx:endIdx);
