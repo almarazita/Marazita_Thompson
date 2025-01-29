@@ -28,11 +28,13 @@ data.ids = data.ids(valid,:);
 data.times = data.times(valid,:);
 data.values = data.values(valid,:);
 data.signals.data = data.signals.data(valid,:);
-data.spikes.data = data.spikes.data(valid,:);
 
-%% Clean spike data
-data = clean_spike(data, unit_id, start_code, end_code);
-
+if ~isempty(data.spikes)
+    data.spikes.data = data.spikes.data(valid,:);
+ 
+    %% Clean spike data
+    data = clean_spike(data, unit_id, start_code, end_code);
+end
 %% Clean pupil data
 % TO DO: Does clean pupil remove data.signals for memory?
 data = clean_pupil(data, start_code, end_code);
