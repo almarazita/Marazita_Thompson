@@ -192,6 +192,7 @@ for u=1:num_plots
     hold off;
 
     %% Optionally, save as PDF
+    fig.Position = [82 167 1588 752];
     pdfFileName = sessionName+"_surprise_summary.pdf";
     exportgraphics(fig, pdfFileName, 'ContentType', 'vector');
     close(fig);

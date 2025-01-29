@@ -41,12 +41,6 @@ for u = 1:size(unit_table,1)
 
     %% 4) new_SingleUnitGLMs: run some simple statistics for each unit
     %unit_table = SingleUnitGLMs(unit_data(u),unit_table,u);
-
-    %% 5) Create a population data matrix
-        % It might be useful to do this in a separate script or add
-        % conditional argument?
-        % Psuedopopulation/repeated random subsampling
-        % Save the matrix?
 end
 
 

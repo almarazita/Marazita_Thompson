@@ -19,6 +19,7 @@ if length(hazards)>1
 else
     hazard_leg = {[num2str(hazards(1)) ' Hazard']};
 end
+window_size = 300;  %could adjust
 alignments = {'sample_on','sac_on'};  %'fp_off','target_off',
 
 cue_locs = nonanunique(data.ids.sample_id);
@@ -49,21 +50,15 @@ for a = 1:length(alignments)
             tmp.values = tmp.values(criteria,:);
 
             % Choose beginning and end times relative to event
-            if a == 1
-                window_width = [0, 300];
-            else
-                window_width = [300, 0];
-            end
+            window_width = [0, 300];
 
             % Get mean target-on activity for 300 ms after target onset for
             % each trial
             [~,target_on] = plotPSTHAligned(tmp,alignment,window_width,[],[],0,0);
-            target_on = mean(target_on,'omitnan'); % first take mean over time window.
+            targ_on = mean(targ_on,'omitnan')
             targ_means(c) = mean(target_on,'omitnan');
-            targ_sems(c) = std(target_on,'omitnan')/sqrt(length(target_on));
         end
-        plot(cue_locs,targ_means,'-o','Color',co{h},'MarkerFaceColor',co{h});
-        errorbar(cue_locs,targ_means,targ_sems,'Color',co{h});
+
         ylabel('Firing Rate (sp/s)')
         xlabel('Cue Location')
         if isempty(axs)
