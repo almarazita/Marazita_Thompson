@@ -6,7 +6,7 @@ function surprise_summary_v2(unit_data, unit_table)
 % proximal/distal, and hazard rate.
 % Assumes you have unit_data and unit_table loaded in
 % u: row/struct of unit data table to use
-
+figure_visible = 'off'; % whether you want the figures to pop up
 num_plots = length(unit_data);
 for u=1:num_plots
 
@@ -22,11 +22,19 @@ for u=1:num_plots
     thisH = data.values.hazard;
     cue_loc = data.ids.sample_id;
     switch_cue = zeros(length(cue_loc),1);
+    stay_cue = zeros(length(cue_loc),1);
     % The cue signals switch if its position is away from what was previously
     % correct, and we're in the same AODR block
-    switch_cue(thisH==prevH & prevState==1 & cue_loc==1)=1; % Bottom to top
-    switch_cue(thisH==prevH & prevState==2 & cue_loc==-1)=1; % Top to bottom
+    % switch_cue(thisH==prevH & prevState==1 & cue_loc==1)=1; % Bottom to top
+    % switch_cue(thisH==prevH & prevState==2 & cue_loc==-1)=1; % Top to bottom
+
+    switch_cue(thisH==prevH & prevState==1 & ismember(cue_loc,[2,3,4]))=1; % Bottom to top
+    switch_cue(thisH==prevH & prevState==2 & ismember(cue_loc,[-2,-3,-4]))=1; % Top to bottom
     
+    stay_cue(thisH==prevH & prevState==1 & ismember(cue_loc,[-2,-3,-4]))=1; % Bottom before, bottom now
+    stay_cue(thisH==prevH & prevState==2 & ismember(cue_loc,[2,3,4]))=1; % Top before, top now
+    
+
     % Criterion 2: Switch rate
     low_switch = 0.05;
     high_switch = 0.50;
@@ -34,12 +42,14 @@ for u=1:num_plots
     % Criterion 3: Whether there was a switch
     obj_switch = zeros(length(cue_loc),1);
     obj_switch(prevState~=data.ids.correct_target)=1;
-    
+    obj_switch(1) = 0; % No objective switch on first trial but will return true otherwise
+
     % Criterion 4: Response
     correct = data.ids.score==1 & ~isnan(data.ids.choice);
     
     %% 2. Cue location tuning curve
     fig = figure('Position', [100, 100, 800, 600]);
+    figure(fig, 'Visible', figure_visible);
     axs = [subplot(1, 2, 1), subplot(1, 2, 2)];
     plotHazardCueAvgFR(data,1,axs);
     cla;
@@ -74,16 +84,16 @@ for u=1:num_plots
     % b) Weak stay cues
     % - Incorrect stay
     %disp("Low Switch")
-    incorrect_stay = data.values.hazard==low_switch & ~switch_cue & obj_switch & ~correct;
+    incorrect_stay = data.values.hazard==low_switch & stay_cue & obj_switch & ~correct;
     %disp("Incorrect stays: " + num2str(sum(incorrect_stay)))
     % - Correct switch
-    correct_switch = data.values.hazard==low_switch & ~switch_cue & obj_switch & correct;
+    correct_switch = data.values.hazard==low_switch & stay_cue & obj_switch & correct;
     %disp("Correct switches: " + num2str(sum(correct_switch)))
     % - Correct stay
-    correct_stay = data.values.hazard==low_switch & ~switch_cue & ~obj_switch & correct;
+    correct_stay = data.values.hazard==low_switch & stay_cue & ~obj_switch & correct;
     %disp("Correct stays: " + num2str(sum(correct_stay)))
     % - Incorrect switch
-    incorrect_switch = data.values.hazard==low_switch & ~switch_cue & ~obj_switch & ~correct;
+    incorrect_switch = data.values.hazard==low_switch & stay_cue & ~obj_switch & ~correct;
     %disp("Incorrect switches: " + num2str(sum(incorrect_switch)))
 
     low_stay_avg = [mean(data.epochs.target_on(incorrect_stay)),...
@@ -122,16 +132,16 @@ for u=1:num_plots
 
     % b) Weak stay cues
     % - Incorrect stay
-    incorrect_stay = data.values.hazard==high_switch & ~switch_cue & obj_switch & ~correct;
+    incorrect_stay = data.values.hazard==high_switch & stay_cue & obj_switch & ~correct;
     %disp("Incorrect stays: " + num2str(sum(incorrect_stay)))
     % - Correct switch
-    correct_switch = data.values.hazard==high_switch & ~switch_cue & obj_switch & correct;
+    correct_switch = data.values.hazard==high_switch & stay_cue & obj_switch & correct;
     %disp("Correct switches: " + num2str(sum(correct_switch)))
     % - Correct stay
-    correct_stay = data.values.hazard==high_switch & ~switch_cue & ~obj_switch & correct;
+    correct_stay = data.values.hazard==high_switch & stay_cue & ~obj_switch & correct;
     %disp("Correct stays: " + num2str(sum(correct_stay)))
     % - Incorrect switch
-    incorrect_switch = data.values.hazard==high_switch & ~switch_cue & ~obj_switch & ~correct;
+    incorrect_switch = data.values.hazard==high_switch & stay_cue & ~obj_switch & ~correct;
     %disp("Incorrect switches: " + num2str(sum(incorrect_switch)))
 
     high_stay_avg = [mean(data.epochs.target_on(incorrect_stay)),...
