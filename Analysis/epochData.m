@@ -22,10 +22,13 @@ tmp.signals = [];
 % Calculate baseline -- very important for comapring between tasks that are
 % blocked in case you want to subtract
 % Gives mean baseline for each trial 300ms prior to sample on.
-tmp.epochs.baseline(unit_idx,:) = plotBaselineDrift_AODR(tmp,1,'sample_on',300,[],0);
+epochs.baseline(unit_idx,:) = plotBaselineDrift_AODR(tmp,1,'sample_on',300,[],0);
 
 if baseline_sub
-    tmp.binned_spikes(unit_idx,:,:) = squeeze(tmp.binned_spikes(unit_idx,:,:)) - squeeze(tmp.epochs.baseline(unit_idx,:));
+    epochs.is_bs = 1; % is baseline subtracted
+    tmp.binned_spikes(unit_idx,:,:) = squeeze(tmp.binned_spikes(unit_idx,:,:)) - squeeze(epochs.baseline(unit_idx,:));
+else
+    epochs.is_bs = 0;
 end
 
 % This will give +- window_width/2 around the event of interest

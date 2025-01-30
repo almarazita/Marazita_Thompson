@@ -69,7 +69,7 @@ else
         else
             title('Switch in Low Hazard')
             if c == 1
-                legend(p,switch_leg)
+                % legend(p,switch_leg)
             end
         end
     end

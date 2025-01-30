@@ -18,7 +18,7 @@ for ifile = 1:length(data)
         unit_num = unit_num+1;
         % Only trials with a sample are valid!!!
         event_idx = ~isnan(data{ifile}.times.('sample_on'));
-        
+        unit_data(unit_num).header = data{ifile}.header;
         unit_data(unit_num).fileName = data{ifile}.header.filename;
         unit_data(unit_num).ids = data{ifile}.ids(event_idx,:);
         unit_data(unit_num).values = data{ifile}.values(event_idx,:);

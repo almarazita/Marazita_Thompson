@@ -52,7 +52,7 @@ for c = 1:length(codes)
     else
         title('All Cue Locations')
         if c == 1
-            legend(p,hazard_leg)
+            % legend(p,hazard_leg)
         end
     end
 %         legend(p,cellstr(num2str(hazards)))
