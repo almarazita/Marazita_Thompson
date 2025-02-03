@@ -1,4 +1,4 @@
-clean_dir = "/Users/lowell/Library/CloudStorage/Box-Box/GoldLab/Data/Physiology/AODR/Data/MrM/Converted/Sorted/Mat_Cleaned/All_Refined";
+clean_dir = "/Users/GoldLab/Box/GoldLab/Data/Physiology/AODR/Data/MrM/Converted/Sorted/Mat_Cleaned/All_Refined";
 
 % Get the names of the .mat files in the folder
 folder_struct = dir(clean_dir);
