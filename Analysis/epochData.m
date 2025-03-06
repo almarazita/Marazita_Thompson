@@ -32,7 +32,8 @@ else
 end
 
 % This will give +- window_width/2 around the event of interest
-window_width = [0, 300];
+%window_width = [0, 300];
+window_width = [0, 280]; % CHANGED TO MAXIMIZE AUC MEDIAN
 
 % Get mean target-on activity for 300 ms after target onset for
 % each trial

@@ -1,6 +1,6 @@
 function plot_initial_glm(unit_table, u)
 %% Plot a line graph for the different coefficients obtained from GLMs over
-% different windows
+% different windows. Works with initial_glm 3-predictor model.
 
 data = unit_table(u, :);
 results = data.coeffs{1, 1};
@@ -72,9 +72,9 @@ hold on;
 xaxis = (0:(num_windows - 1)) * step_size;
 plot(xaxis, cue_loc_coeffs, 'b', 'DisplayName', 'cue loc', 'LineWidth', 2);
 plot(xaxis, hazard_coeffs, 'r', 'DisplayName', 'hazard', 'LineWidth', 2);
-plot(xaxis, choice_coeffs, 'y', 'DisplayName', 'choice', 'LineWidth', 2);
+plot(xaxis, choice_coeffs, 'g', 'DisplayName', 'choice', 'LineWidth', 2);
 plot(xaxis, cue_hazard_coeffs, 'm', 'DisplayName', 'cue loc:hazard', 'LineWidth', 2);
-plot(xaxis, cue_h_choice_coeffs, 'k', 'DisplayName', 'cue loc:hazard:choice', 'LineWidth', 2);
+plot(xaxis, cue_h_choice_coeffs, 'c', 'DisplayName', 'cue loc:hazard:choice', 'LineWidth', 2);
 
 % Error bands
 fill([xaxis, flip(xaxis)], ...
@@ -85,13 +85,13 @@ fill([xaxis, flip(xaxis)], ...
      'r', 'FaceAlpha', 0.2, 'EdgeColor', 'none',  'HandleVisibility', 'off');
 fill([xaxis, flip(xaxis)], ...
      [choice_coeffs' + hazard_SEM', flip(choice_coeffs' - choice_SEM')], ...
-     'y', 'FaceAlpha', 0.2, 'EdgeColor', 'none',  'HandleVisibility', 'off');
+     'g', 'FaceAlpha', 0.2, 'EdgeColor', 'none',  'HandleVisibility', 'off');
 fill([xaxis, flip(xaxis)], ...
      [cue_hazard_coeffs' + cue_hazard_SEM', flip(cue_hazard_coeffs' - cue_hazard_SEM')], ...
      'm', 'FaceAlpha', 0.2, 'EdgeColor', 'none',  'HandleVisibility', 'off');
 fill([xaxis, flip(xaxis)], ...
      [cue_h_choice_coeffs' + cue_h_choice_SEM', flip(cue_h_choice_coeffs' - cue_h_choice_SEM')], ...
-     'k', 'FaceAlpha', 0.2, 'EdgeColor', 'none',  'HandleVisibility', 'off');
+     'c', 'FaceAlpha', 0.2, 'EdgeColor', 'none',  'HandleVisibility', 'off');
 
 % Plot small asterisks for significant coefficients
 sig_height = max(max([cue_loc_coeffs, hazard_coeffs, choice_coeffs, cue_hazard_coeffs, cue_h_choice_coeffs])) + 0.05;
@@ -104,13 +104,13 @@ for i = 1:num_windows
         text(xaxis(i), sig_heights(2), '*', 'Color', 'r', 'FontSize', 12, 'HorizontalAlignment', 'center');
     end
     if is_significant_choice(i)
-        text(xaxis(i), sig_heights(3), '*', 'Color', 'y', 'FontSize', 12, 'HorizontalAlignment', 'center');
+        text(xaxis(i), sig_heights(3), '*', 'Color', 'g', 'FontSize', 12, 'HorizontalAlignment', 'center');
     end
     if is_significant_cue_hazard(i)
         text(xaxis(i), sig_heights(4), '*', 'Color', 'm', 'FontSize', 12, 'HorizontalAlignment', 'center');
     end
     if is_significant_cue_h_choice(i)
-        text(xaxis(i), sig_heights(5), '*', 'Color', 'k', 'FontSize', 12, 'HorizontalAlignment', 'center');
+        text(xaxis(i), sig_heights(5), '*', 'Color', 'c', 'FontSize', 12, 'HorizontalAlignment', 'center');
     end
 end
 

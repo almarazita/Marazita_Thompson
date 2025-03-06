@@ -1,0 +1,101 @@
+%% Test multiple visual epoch window widths
+all_population_ROCs = {};
+stats_table = table();
+population_ROCs = [];
+step_size = 10;
+window_widths = 10:step_size:400;
+    
+for window_num = 1:length(window_widths)
+
+    for unit_num = 1:length(unit_data)
+
+        % Below is copied from epochData:
+        data = unit_data(unit_num);
+        
+        valid = ~isnan(data.times.('sample_on')) & ~isnan(data.times.('sac_on'));
+        tmp = data;
+        tmp.binned_spikes = tmp.binned_spikes(1,:,valid); % unit x ms x trial
+        tmp.baseline_pupil = tmp.baseline_pupil(valid,:);
+        tmp.bs_evoked_pupil = tmp.bs_evoked_pupil(valid,:);
+        tmp.cleaned_pupil = tmp.cleaned_pupil(valid,:);
+        tmp.ids = tmp.ids(valid,:);
+        tmp.times = tmp.times(valid,:);
+        tmp.values = tmp.values(valid,:);
+        tmp.spikes = []; % for memory
+        tmp.spike_time_mat = [];
+        tmp.signals = [];
+        
+        % Calculate baseline -- very important for comapring between tasks that are
+        % blocked in case you want to subtract
+        % Gives mean baseline for each trial 300ms prior to sample on.
+        clear epochs;
+        epochs.baseline(1,:) = plotBaselineDrift_AODR(tmp,1,'sample_on',300,[],0);
+        
+        epochs.is_bs = 1; % is baseline subtracted
+        tmp.binned_spikes(1,:,:) = squeeze(tmp.binned_spikes(1,:,:)) - squeeze(epochs.baseline(1,:));
+                
+        % This will give +- window_width/2 around the event of interest
+        cur_window = window_widths(window_num);
+        window_width = [0, cur_window];
+        
+        % Get mean target-on activity for window width ms after target onset
+        % for each trial
+        [~, target_on] = plotPSTHAligned(tmp, 'sample_on', window_width, [], [], 0, 0);
+        event_idx = ~isnan(tmp.times.('sample_on'));
+        epochs.target_on(1, event_idx) = mean(target_on, 'omitnan');
+    
+        unit_data(unit_num).epochs.target_on = epochs.target_on;
+        
+        %% Compute AUC (high vs. low hazard rate visual response)
+        
+        % Create 2 conditions (hazard rates) x 1 "stimulus" (visual epoch) cell
+        % array
+        stimulus_responses = cell(2, 1);
+    
+        low_tr = data.values.hazard == 0.05;
+        low = data.epochs.target_on(low_tr);
+        %low = data.epochs.memory(low_tr);
+    
+        high_tr = data.values.hazard == 0.50;
+        high = data.epochs.target_on(high_tr);
+        %high = data.epochs.memory(high_tr);
+    
+        stimulus_responses{1} = low;
+        stimulus_responses{2} = high;
+    
+        % Compute AUC
+        % Prefer high hazard (pref = 2)
+        % Trial_min = 3
+        % num_bootstraps = 0
+        [raw_ROC, ROC_percentiles] = GrandChoiceProb_Permutation(stimulus_responses, 2, 3, 0);
+        population_ROCs(unit_num) = raw_ROC; % Add to array
+        %unit_data(unit_num).visual_ROC = raw_ROC; % Add to unit_table
+        %unit_data(unit_num).memory_ROC = raw_ROC;
+
+    end %for each neuron
+
+    all_population_ROCs{window_num} = population_ROCs; % Save
+
+    % %% Plot histogram of raw ROCs
+    % figure;
+    % histogram(population_ROCs, 'BinEdges', 0:0.05:1, 'Normalization', 'count');
+    % xlim([0, 1]);
+    % xlabel('Raw ROC', 'FontSize', 14);
+    % ylabel('Neurons', 'FontSize', 14);
+    % title(sprintf('Visual (%dms window)', cur_window));
+    % %title('Memory');
+    
+    %% Run stats
+    centered_population = population_ROCs - 0.5;
+    p_sign = signtest(centered_population);
+    %fprintf('p-value from Sign Test: %.4f\n', p);
+    p_rank = signrank(centered_population);
+    %fprintf('p-value from Sign Rank: %.4f\n', p);
+    [~, p_ttest] = ttest(centered_population);
+    %fprintf('p-value from T Test: %.4f\n', p);
+    
+    new_row = table(cur_window, p_sign, p_rank, p_ttest, ...
+                    'VariableNames', {'WindowWidth_ms', 'SignTest_p', 'RankTest_p', 'TTest_p'});
+    stats_table = [stats_table; new_row];
+
+end %for each visual window width

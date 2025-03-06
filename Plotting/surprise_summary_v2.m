@@ -1,5 +1,6 @@
 function surprise_summary_v2(unit_data, unit_table)
 %% Neuron summary by "surprise"
+%% CURRENTLY WRITTEN TO INCLUDE EXTREME CUE LOCATIONS
 % Plot the firing rate distributions of a neuron for trials with evidence
 % that signals switching behavior under both conditions. Do not inclue the
 % center cue location, and create a single bar plot by outcome,
@@ -27,12 +28,15 @@ for u=1:num_plots
     % correct, and we're in the same AODR block
     % switch_cue(thisH==prevH & prevState==1 & cue_loc==1)=1; % Bottom to top
     % switch_cue(thisH==prevH & prevState==2 & cue_loc==-1)=1; % Top to bottom
+    % 
+    % stay_cue(thisH==prevH & prevState==1 & cue_loc==-1)=1; % Bottom before, bottom now
+    % stay_cue(thisH==prevH & prevState==2 & cue_loc==1)=1; % Top before, top now
 
-    switch_cue(thisH==prevH & prevState==1 & ismember(cue_loc,[1]))=1; % Bottom to top
-    switch_cue(thisH==prevH & prevState==2 & ismember(cue_loc,[-1]))=1; % Top to bottom
-    
-    stay_cue(thisH==prevH & prevState==1 & ismember(cue_loc,[-1]))=1; % Bottom before, bottom now
-    stay_cue(thisH==prevH & prevState==2 & ismember(cue_loc,[1]))=1; % Top before, top now
+    switch_cue(thisH==prevH & prevState==1 & cue_loc > 0)=1; % Bottom to top
+    switch_cue(thisH==prevH & prevState==2 & cue_loc < 0)=1; % Top to bottom
+
+    stay_cue(thisH==prevH & prevState==1 & cue_loc < 0)=1; % Bottom before, bottom now
+    stay_cue(thisH==prevH & prevState==2 & cue_loc > 0)=1; % Top before, top now
     
 
     % Criterion 2: Switch rate
@@ -40,17 +44,22 @@ for u=1:num_plots
     high_switch = 0.50;
     
     % Criterion 3: Whether there was a switch
-    obj_switch = zeros(length(cue_loc),1);
-    obj_switch(prevState~=data.ids.correct_target)=1;
+    obj_switch = zeros(length(cue_loc), 1);
+    obj_switch(prevState ~= data.ids.correct_target) = 1;
     obj_switch(1) = 0; % No objective switch on first trial but will return true otherwise
 
     % Criterion 4: Response
     correct = data.ids.score==1 & ~isnan(data.ids.choice);
-    incorrect = data.ids.score==0 & ~isnan(data.ids.choice); 
+    incorrect = data.ids.score==0 & ~isnan(data.ids.choice);
+
+    % Criterion 5: Consecutive trials
+    % prevTrial = [nan; data.values.trial_num(1:end-1)];
+    % thisTrial = data.values.trial_num;
+    % consecutive = thisTrial == prevTrial + 1;
     
     %% 2. Cue location tuning curve
     fig = figure('Position', [100, 100, 800, 600],'Visible',figure_visible);
-    axs = [subplot(1, 2, 1), subplot(1, 2, 2)];
+    axs = [subplot(1, 3, 1), subplot(1, 3, 2)];
     plotHazardCueAvgFR(data,1,axs);
     cla;
     title('');
@@ -153,8 +162,70 @@ for u=1:num_plots
         mean(data.epochs.target_on(correct_stay))/sqrt(length(data.epochs.target_on(correct_stay))),...
         mean(data.epochs.target_on(incorrect_switch))/sqrt(length(data.epochs.target_on(incorrect_switch)))];
 
-    % Create the bar plot with error bars
-    subplot(1, 2, 2);
+    %% 4. TEMPORARY: Look at stay/switch cues by hazard rate regardless of response or correct target
+    low_h_surprise = data.values.hazard==low_switch & switch_cue;
+    low_h_no_surprise = data.values.hazard==low_switch & stay_cue;
+
+    low_h_avg = [mean(data.epochs.target_on(low_h_surprise)),...
+        mean(data.epochs.target_on(low_h_no_surprise))];
+    low_h_SEM = [std(data.epochs.target_on(low_h_surprise))/sqrt(length(data.epochs.target_on(low_h_surprise))),...
+        mean(data.epochs.target_on(low_h_no_surprise))/sqrt(length(data.epochs.target_on(low_h_no_surprise)))];
+
+    high_h_surprise = data.values.hazard==high_switch & switch_cue;
+    high_h_no_surprise = data.values.hazard==high_switch & stay_cue;
+
+    high_h_avg = [mean(data.epochs.target_on(high_h_surprise)),...
+        mean(data.epochs.target_on(high_h_no_surprise))];
+    high_h_SEM = [std(data.epochs.target_on(high_h_surprise))/sqrt(length(data.epochs.target_on(high_h_surprise))),...
+        mean(data.epochs.target_on(high_h_no_surprise))/sqrt(length(data.epochs.target_on(high_h_no_surprise)))];
+
+    subplot(1, 3, 2);
+    hold on;
+    avgs = [low_h_avg', high_h_avg'];
+    b = bar(avgs, 'EdgeColor', 'none');
+    % b(2).FaceColor = 'w';
+    % b(2).EdgeColor = [4 94 167] / 255;
+    b(1).FaceColor = [4 94 167] / 255;
+    % b(4).FaceColor = 'w';
+    % b(4).EdgeColor = [194 0 77] / 255;
+    b(2).FaceColor = [194 0 77] / 255;
+
+    % Add SEM as error bars
+    ngroups = 2;
+    nbars = 2;
+    err = [low_h_SEM', high_h_SEM'];
+    groupwidth = min(0.8, nbars/(nbars + 1.5));
+    for i = 1:nbars
+        x = (1:ngroups) - groupwidth/2 + (2*i-1) * groupwidth / (2*nbars);
+        errorbar(x, avgs(:,i), err(:,i), 'k', 'LineStyle', 'none');
+    end
+    hold off
+
+    % Customize x-tick labels
+    xticks(1:2);
+    xticklabels({'Distal', 'Proximal'});
+    xtickangle(45);
+
+    % Set axis labels
+    xlabel('Cue');
+    ylabel('Firing Rate');
+
+    % Legend
+    b(1).DisplayName = 'Low H';
+    b(2).DisplayName = 'High H';
+    legend(b, 'Location', 'north');
+
+    % Title
+    filename = data.fileName;
+    startIdx = strfind(filename, 'MM');
+    endIdx = strfind(filename, '.hdf5') - 1;
+    sessionName = filename(startIdx:endIdx);
+    sgtitle({sessionName, unit_id}, 'Interpreter', 'none')
+
+    hold off;
+
+    %% 5. Create the bar plot with error bars
+    subplot(1, 3, 3);
     hold on;
     avgs = [low_stay_avg', low_surprise_avg', high_stay_avg', high_surprise_avg'];
     b = bar(avgs, 'EdgeColor', 'none');

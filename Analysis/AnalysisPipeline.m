@@ -30,7 +30,6 @@ for u = 1:size(unit_table,1)
     % TO DO: 
     % 1) epoched data will have a different size of many of the fields - should be fixed above
     % 2) either overwrite the unit data (or added epoched data) or clear the unit data since this
-    % is super redundant and we end up with identical data, one with an
     % extra field.
 
     %% 4) new_SingleUnitGLMs: run some simple statistics for each unit
@@ -38,5 +37,6 @@ for u = 1:size(unit_table,1)
 
     % plotAODR_sessionNeural_Overview(unit_data(u), [], 1);
 end
-
+  % is super redundant and we end up with identical data, one with an
+  
 

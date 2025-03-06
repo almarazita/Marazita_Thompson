@@ -1,11 +1,10 @@
 %% Plot initial GLM distribution of significant time windows
-% Pick a good window
-% Look at histograms summarizing coefficients across neurons
-% (Long's papers)
+
 window_size = 150;
 step_size = 10;
-num_windows = 94;
+num_windows = 3;
 num_units = size(unit_table, 1);
+alpha = 0.05;
 
 sig_cue = zeros(num_windows, 1);
 sig_hazard = zeros(num_windows, 1);
@@ -32,7 +31,6 @@ for u = 1:num_units
     end
     
     % Determine which are significant
-    alpha = 0.05;
     is_significant_cue = cue_loc_ps < alpha;
     is_significant_hazard = hazard_ps < alpha;
     is_significant_cue_hazard = cue_hazard_ps < alpha;
@@ -78,3 +76,4 @@ ylabel('Neurons with Significant Coefficient');
 title('Cue Location: Hazard');
 xlim([0 max(xaxis)]); % Set X axis limits
 ylim([0 num_units]);
+grid on;
