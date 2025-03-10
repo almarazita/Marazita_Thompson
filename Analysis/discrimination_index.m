@@ -37,7 +37,8 @@ for unit_num = 1:95
         
         trial_targets = data.ids.sample_id(criteria); % Extract all target IDs
         targets = unique(trial_targets);
-        trial_FR = data.epochs.target_on(criteria)'; % Extract baseline subtracted FR for each trial
+        %trial_FR = data.epochs.target_on(criteria)'; % Extract baseline subtracted FR for each trial
+        trial_FR = data.epochs.memory(criteria)';
         max_trials = max(histcounts(trial_targets));
         DI_mat = nan(max_trials, length(targets));
     
@@ -65,7 +66,8 @@ for unit_num = 1:95
         
         trial_targets = data.ids.sample_id(criteria); % Extract all target IDs
         targets = unique(trial_targets);
-        trial_FR = data.epochs.target_on(criteria)'; % Extract baseline subtracted FR for each trial
+        %trial_FR = data.epochs.target_on(criteria)'; % Extract baseline subtracted FR for each trial
+        trial_FR = data.epochs.memory(criteria)';
         max_trials = max(histcounts(trial_targets));
         DI_mat = nan(max_trials, length(targets));
         for ith_targ = 1:length(targets)
@@ -74,7 +76,7 @@ for unit_num = 1:95
             targ_FR = trial_FR(trial_targets == curr_targ);
             n_t = length(targ_FR);
             if n_t > max_trials
-                error('requires matrrix expansion, trials exceeded expectations');
+                error('requires matrix expansion, trials exceeded expectations');
             end
             DI_mat(1:n_t, ith_targ) = targ_FR;
     
@@ -84,9 +86,6 @@ for unit_num = 1:95
     else
         unit_data(unit_num).HighH_DI = NaN;
     end
-
-    %% Attempt at amplitude comparison
-    
 
     % Check for visual response in the main conditions
     criteria = ~isnan(data.values.hazard);
@@ -102,7 +101,8 @@ end
 visual_evoked_p = [unit_data.visual_evoked_p];
 LowH_DI = [unit_data.LowH_DI];
 HighH_DI = [unit_data.HighH_DI];
-criteria = (visual_evoked_p < 0.05) & ~isnan(LowH_DI) & ~isnan(HighH_DI);
+%criteria = (visual_evoked_p < 0.05) & ~isnan(LowH_DI) & ~isnan(HighH_DI);
+criteria = ~isnan(LowH_DI) & ~isnan(HighH_DI);
 
 % Plot Visual
 figure; hold on;
@@ -120,7 +120,8 @@ plot([0, 0.6],[0, 0.6], '--k', 'LineWidth', 2);
 box on; axis square;
 xlabel('Low Hazard Cue DI');
 ylabel('High Hazard Cue DI');
-title('Visual Epoch');
+%title('Visual Epoch');
+title('Memory Epoch');
 
 % Annotations
 n_upper = sum(LowH_DI(criteria) < HighH_DI(criteria));

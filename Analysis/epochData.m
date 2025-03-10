@@ -33,7 +33,7 @@ end
 
 % This will give +- window_width/2 around the event of interest
 %window_width = [0, 300];
-window_width = [0, 280]; % CHANGED TO MAXIMIZE AUC MEDIAN
+window_width = [-100, 249]; % CHANGED TO MAXIMIZE AUC MEDIAN
 
 % Get mean target-on activity for 300 ms after target onset for
 % each trial
@@ -60,9 +60,13 @@ epochs.saccade_on(unit_idx,event_idx) = mean(saccade_on,'omitnan');
 % slightly more time, 800 ms. So there may be ~100 ms overlap with saccade.
 % Note that there is no memory-related activity for some tasks
 
-window_width = [0, 800];
-event_idx = ~isnan(tmp.times.('target_off'));
-[~,memory] = plotPSTHAligned(tmp,'target_off',window_width,[],[],0,0);
-epochs.memory(unit_idx,event_idx) = mean(memory(400:end,:),'omitnan');
+%window_width = [0, 800];
+window_width = [-300, 899];
+%event_idx = ~isnan(tmp.times.('target_off'));
+event_idx = ~isnan(tmp.times.('sample_on'));
+%[~,memory] = plotPSTHAligned(tmp,'target_off',window_width,[],[],0,0);
+[~,memory] = plotPSTHAligned(tmp,'sample_on',window_width,[],[],0,0);
+%epochs.memory(unit_idx,event_idx) = mean(memory(250:end,:),'omitnan');
+epochs.memory(unit_idx,event_idx) = mean(memory,'omitnan');
 
 end

@@ -7,8 +7,9 @@ step_size = 10;
 %window_widths = 10:step_size:400;
 %window_width = 100;
 window_width = 50;
-%window_starts = 0:step_size:400-window_width; % visual
-window_starts = 300:step_size:900-window_width; % memory
+%window_starts = 0:step_size:400-window_width;
+%window_ends = window_starts + window_width - 1;
+window_starts = 400:step_size:900-window_width;
 window_ends = window_starts + window_width - 1;
 window_starts = window_starts * -1; % to work with plotPSTHAligned
     
@@ -48,12 +49,10 @@ for window_num = 1:length(window_starts)
         % for each trial
         [~, target_on] = plotPSTHAligned(tmp, 'sample_on', cur_window, [], [], 0, 0);
         event_idx = ~isnan(tmp.times.('sample_on'));
-        % epochs.target_on(1, event_idx) = mean(target_on, 'omitnan'); % visual
-        epochs.memory(1, event_idx) = mean(target_on, 'omitnan'); % memory
-
-        %unit_data(unit_num).epochs.target_on = epochs.target_on; % visual
-        unit_data(unit_num).epochs.memory = epochs.memory; % memory
-                
+        epochs.target_on(1, event_idx) = mean(target_on, 'omitnan');
+    
+        unit_data(unit_num).epochs.target_on = epochs.target_on;
+        
         %% Compute AUC (high vs. low hazard rate visual response)
         
         % Create 2 conditions (hazard rates) x 1 "stimulus" (visual epoch) cell
@@ -61,12 +60,12 @@ for window_num = 1:length(window_starts)
         stimulus_responses = cell(2, 1);
     
         low_tr = data.values.hazard == 0.05;
-        %low = data.epochs.target_on(low_tr); % visual
-        low = data.epochs.memory(low_tr); % memory
+        low = data.epochs.target_on(low_tr);
+        %low = data.epochs.memory(low_tr);
     
         high_tr = data.values.hazard == 0.50;
-        %high = data.epochs.target_on(high_tr); % visual
-        high = data.epochs.memory(high_tr); % memory
+        high = data.epochs.target_on(high_tr);
+        %high = data.epochs.memory(high_tr);
     
         stimulus_responses{1} = low;
         stimulus_responses{2} = high;
@@ -77,13 +76,22 @@ for window_num = 1:length(window_starts)
         % num_bootstraps = 0
         [raw_ROC, ROC_percentiles] = GrandChoiceProb_Permutation(stimulus_responses, 2, 3, 0);
         population_ROCs(unit_num) = raw_ROC; % Add to array
-        %unit_data(unit_num).visual_ROC = raw_ROC; % Add to unit_table. visual
-        %unit_data(unit_num).memory_ROC = raw_ROC; % memory
+        %unit_data(unit_num).visual_ROC = raw_ROC; % Add to unit_table
+        %unit_data(unit_num).memory_ROC = raw_ROC;
 
-    end % for each neuron
+    end %for each neuron
 
     all_population_ROCs{window_num} = population_ROCs; % Save
 
+    % %% Plot histogram of raw ROCs
+    % figure;
+    % histogram(population_ROCs, 'BinEdges', 0:0.05:1, 'Normalization', 'count');
+    % xlim([0, 1]);
+    % xlabel('Raw ROC', 'FontSize', 14);
+    % ylabel('Neurons', 'FontSize', 14);
+    % title(sprintf('Visual (%dms window)', cur_window));
+    % %title('Memory');
+    
     %% Run stats
     med = median(population_ROCs);
     centered_population = population_ROCs - 0.5;
@@ -98,13 +106,4 @@ for window_num = 1:length(window_starts)
                     'VariableNames', {'Window_Start_50ms', 'Median', 'SignTest_p', 'RankTest_p', 'TTest_p'});
     slide_stats_table = [slide_stats_table; new_row];
 
-end % for each window width
-
-%% Plot median over time (window)
-figure;
-times = slide_stats_table.Window_Start_50ms;
-medians = slide_stats_table.Median;
-is_sig_median = slide_stats_table.SignTest_p < 0.05;
-plot(times, medians);
-hold on;
-scatter(times(is_sig_median), medians(is_sig_median));
+end %for each visual window width

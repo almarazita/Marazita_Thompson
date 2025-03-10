@@ -1,66 +1,24 @@
-%% Test multiple visual epoch window widths
+%% Compute AUC for each neuron (high vs. low hazard rate visual response)
+
 population_ROCs = [];
-step_size = 10;
-window_widths = 10:step_size:400;
-    
-for cur_window = 1:length(window_widths)
+population_ROC_percentiles = {};
 
-    for unit_num = 1:length(unit_data)
+for unit_num = 1:length(unit_data)
 
-    % Below is copied from epochData:
+    % Get neuron
     data = unit_data(unit_num);
-    fprintf('Epoching data for unit %d/%d\n',u,size(unit_table,1));
-    unit_data(unit_num).epochs = epochData(unit_data(unit_num),1,1);
-    
-    valid = ~isnan(data.times.('sample_on')) & ~isnan(data.times.('sac_on'));
-    tmp = data;
-    tmp.binned_spikes = tmp.binned_spikes(unit_idx,:,valid); % unit x ms x trial
-    tmp.baseline_pupil = tmp.baseline_pupil(valid,:);
-    tmp.bs_evoked_pupil = tmp.bs_evoked_pupil(valid,:);
-    tmp.cleaned_pupil = tmp.cleaned_pupil(valid,:);
-    tmp.ids = tmp.ids(valid,:);
-    tmp.times = tmp.times(valid,:);
-    tmp.values = tmp.values(valid,:);
-    tmp.spikes = []; % for memory
-    tmp.spike_time_mat = [];
-    tmp.signals = [];
-    
-    % Calculate baseline -- very important for comapring between tasks that are
-    % blocked in case you want to subtract
-    % Gives mean baseline for each trial 300ms prior to sample on.
-    epochs.baseline(unit_idx,:) = plotBaselineDrift_AODR(tmp,1,'sample_on',300,[],0);
-    
-    if baseline_sub
-        epochs.is_bs = 1; % is baseline subtracted
-        tmp.binned_spikes(unit_idx,:,:) = squeeze(tmp.binned_spikes(unit_idx,:,:)) - squeeze(epochs.baseline(unit_idx,:));
-    else
-        epochs.is_bs = 0;
-    end
-    
-    % This will give +- window_width/2 around the event of interest
-    window_width = [0, window_widths(cur_window)];
-    
-    % Get mean target-on activity for window width ms after target onset
-    % for each trial
-    [~, target_on] = plotPSTHAligned(tmp, 'sample_on', window_width, [], [], 0, 0);
-    event_idx = ~isnan(tmp.times.('sample_on'));
-    epochs.target_on(1, event_idx) = mean(target_on, 'omitnan');
 
-    unit_data(unit_num).epochs.target_on = epochs.target_on;
-    
-    %% Compute AUC (high vs. low hazard rate visual response)
-    
     % Create 2 conditions (hazard rates) x 1 "stimulus" (visual epoch) cell
     % array
     stimulus_responses = cell(2, 1);
 
     low_tr = data.values.hazard == 0.05;
-    low = data.epochs.target_on(low_tr);
-    %low = data.epochs.memory(low_tr);
+    low = data.epochs.target_on(low_tr); % visual
+    %low = data.epochs.memory(low_tr); % memory
 
     high_tr = data.values.hazard == 0.50;
-    high = data.epochs.target_on(high_tr);
-    %high = data.epochs.memory(high_tr);
+    high = data.epochs.target_on(high_tr); % visual
+    %high = data.epochs.memory(high_tr); % memory
 
     stimulus_responses{1} = low;
     stimulus_responses{2} = high;
@@ -68,24 +26,25 @@ for cur_window = 1:length(window_widths)
     % Compute AUC
     % Prefer high hazard (pref = 2)
     % Trial_min = 3
-    % num_bootstraps = 0
-    [raw_ROC, ROC_percentiles] = GrandChoiceProb_Permutation(stimulus_responses, 2, 3, 0);
+    % num_bootstraps = 1000
+    [raw_ROC, ROC_percentiles] = GrandChoiceProb_Permutation(stimulus_responses, 2, 3, 1000);
     population_ROCs(unit_num) = raw_ROC; % Add to array
-    unit_data(unit_num).visual_ROC = raw_ROC; % Add to unit_table
-    %unit_data(unit_num).memory_ROC = raw_ROC;
+    population_ROC_percentiles{unit_num} = ROC_percentiles;
+    unit_data(unit_num).visual_ROC = raw_ROC; % Add to unit_table. visual
+    %unit_data(unit_num).memory_ROC = raw_ROC; % memory
+    if raw_ROC < ROC_percentiles(1) || raw_ROC > ROC_percentiles(2)
+        unit_data(unit_num).visual_ROC_sig = 1; % visual
+        %unit_data(unit_num).memory_ROC_sig = 1; % memory
+    else
+        unit_data(unit_num).visual_ROC_sig = 0; % visual
+        %unit_data(unit_num).memory_ROC_sig = 0; % memory
+    end
 
-    end %for each neuron
-
-    %% Plot histogram of raw ROCs
-figure;
-histogram(population_ROCs, 'BinEdges', 0:0.05:1, 'Normalization', 'count');
-xlim([0, 1]);
-xlabel('Raw ROC', 'FontSize', 14);
-ylabel('Neurons', 'FontSize', 14);
-%title('Visual');
-title('Memory');
+end
 
 %% Run stats
+med = median(population_ROCs);
+fprintf('Median: %.4f\n', med);
 centered_population = population_ROCs - 0.5;
 p = signtest(centered_population);
 fprintf('p-value from Sign Test: %.4f\n', p);
@@ -93,5 +52,37 @@ p = signrank(centered_population);
 fprintf('p-value from Sign Rank: %.4f\n', p);
 [~, p] = ttest(centered_population);
 fprintf('p-value from T Test: %.4f\n', p);
-    
-end %for each visual window width
+
+%% Plot histogram of raw ROCs
+num_bins = 25;
+bin_width = 1 / num_bins;  
+bin_edges = 0:bin_width:1;
+
+% Create the histogram
+figure;
+hold on;
+%is_responsive = [unit_data.visual_evoked_p].' < 0.05;
+histogram(population_ROCs, 'BinEdges', bin_edges, ...
+    'Normalization', 'count', 'FaceColor', 'w', 'EdgeColor', 'k', ...
+    'FaceAlpha', 0.8);
+is_sig = logical([unit_data.visual_ROC_sig].'); % visual
+%is_sig = logical([unit_data.memory_ROC_sig].'); % memory
+histogram(population_ROCs(is_sig & ), 'BinEdges', ...
+    bin_edges, 'FaceColor', 'k', 'EdgeColor', 'k', 'FaceAlpha', 0.8);
+plot([med, med], y_limits, 'k:', 'LineWidth', 1.5);
+y_limits = ylim;
+arrow_size = 0.03 * diff(y_limits);
+arrow_x = med;
+arrow_y = y_limits(2) + 0.05*diff(y_limits);
+x_triangle = [-0.01 0 0.01] + arrow_x;
+y_triangle = [0.5 -0.5 0.5] + arrow_y;
+fill(x_triangle, y_triangle, 'k', 'EdgeColor', 'k', 'FaceColor', 'k');
+xlim([0, 1]);
+xlabel('AUC', 'FontSize', 14);
+ylabel('Neurons', 'FontSize', 14);
+title('Visual', 'FontSize', 14); % visual
+%title('Memory', 'FontSize', 14); % memory
+ax = gca;
+ax.LineWidth = 2;
+set(ax, 'FontSize', 14);
+axis square;

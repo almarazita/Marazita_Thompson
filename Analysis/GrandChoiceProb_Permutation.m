@@ -140,7 +140,8 @@ if ~isempty(valid_stimuli)
     % ROC_percentiles(1) = sum(ROC(2:end)<ROC(1))/num_bootstraps;
     % ROC_percentiles(2) = sum(ROC(2:end)>ROC(1))/num_bootstraps;
     
-    ROC_percentiles = prctile(ROC(2:end),[5,95]);
+    %ROC_percentiles = prctile(ROC(2:end),[5,95]);
+    ROC_percentiles = prctile(ROC(2:end),[2.5,97.5]);
 else
     warning('No valid trials to compute an ROC, returning NaNs');
     raw_ROC = NaN;
