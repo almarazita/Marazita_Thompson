@@ -22,7 +22,10 @@ tmp.signals = [];
 % Calculate baseline -- very important for comapring between tasks that are
 % blocked in case you want to subtract
 % Gives mean baseline for each trial 300ms prior to sample on.
-epochs.baseline(unit_idx,:) = plotBaselineDrift_AODR(tmp,1,'sample_on',300,[],0);
+obsolete = plotBaselineDrift_AODR(tmp,1,'sample_on',300,[],0); % Old
+window_width = [300, 1];
+[~,baseline] = plotPSTHAligned(tmp,'sample_on',window_width,[],[],0,0);
+epochs.baseline(unit_idx,:) = mean(baseline, 'omitnan');
 
 if baseline_sub
     epochs.is_bs = 1; % is baseline subtracted
@@ -33,7 +36,7 @@ end
 
 % This will give +- window_width/2 around the event of interest
 %window_width = [0, 300];
-window_width = [0, 280]; % CHANGED TO MAXIMIZE AUC MEDIAN
+window_width = [-100, 249]; % CHANGED TO MAXIMIZE AUC MEDIAN
 
 % Get mean target-on activity for 300 ms after target onset for
 % each trial
@@ -60,9 +63,13 @@ epochs.saccade_on(unit_idx,event_idx) = mean(saccade_on,'omitnan');
 % slightly more time, 800 ms. So there may be ~100 ms overlap with saccade.
 % Note that there is no memory-related activity for some tasks
 
-window_width = [0, 800];
-event_idx = ~isnan(tmp.times.('target_off'));
-[~,memory] = plotPSTHAligned(tmp,'target_off',window_width,[],[],0,0);
-epochs.memory(unit_idx,event_idx) = mean(memory(250:end,:),'omitnan');
+%window_width = [0, 800];
+window_width = [-300, 899];
+%event_idx = ~isnan(tmp.times.('target_off'));
+event_idx = ~isnan(tmp.times.('sample_on'));
+%[~,memory] = plotPSTHAligned(tmp,'target_off',window_width,[],[],0,0);
+[~,memory] = plotPSTHAligned(tmp,'sample_on',window_width,[],[],0,0);
+%epochs.memory(unit_idx,event_idx) = mean(memory(250:end,:),'omitnan');
+epochs.memory(unit_idx,event_idx) = mean(memory,'omitnan');
 
 end

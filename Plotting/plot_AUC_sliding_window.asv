@@ -1,0 +1,23 @@
+%% Plot population median over time (window)
+% Assumes you just ran run_AUC_sliding_window to get the table of
+% statistics, and variables are already in workspace.
+
+figure;
+hold on;
+
+times = window_starts * -1;
+medians = slide_stats_table.Median;
+Q1s = slide_stats_table.Q1;
+Q3s = slide_stats_table.Q3;
+Means = slide_stats_table.Mean;
+SEMs = slide_stats_table.SEM;
+
+%plot(times, medians, 'k', 'LineWidth', 2);
+errBar = [(Q3s - medians)'; Q1s'];
+shadedErrorBar(times, medians, errBar);
+%plot(times, Q1s, 'Color', [0.3, 0.3, 0.3], 'LineWidth', 1);
+%plot(times, Q3s, 'Color', [0.3, 0.3, 0.3], 'LineWidth', 1);
+yline(0.5, 'k--', 'LineWidth', 1);
+
+xlabel('Time from cue onset (ms)');
+ylabel('AUC');

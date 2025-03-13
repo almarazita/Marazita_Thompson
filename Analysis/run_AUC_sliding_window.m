@@ -1,18 +1,19 @@
 %% Test multiple visual epoch window widths
 all_population_ROCs = {};
-%stats_table = table();
 slide_stats_table = table();
 population_ROCs = [];
 step_size = 10;
 %window_widths = 10:step_size:400;
-%window_width = 100;
-window_width = 50;
+window_width = 150;
 %window_starts = 0:step_size:400-window_width; % visual
-window_starts = 300:step_size:900-window_width; % memory
+%window_starts = 300:step_size:900-window_width; % memory
+window_starts = -300:step_size:900-window_width; % whole time course
 window_ends = window_starts + window_width - 1;
 window_starts = window_starts * -1; % to work with plotPSTHAligned
     
 for window_num = 1:length(window_starts)
+
+    fprintf('Computing with window %d/%d\n', window_num, length(window_starts));
 
     for unit_num = 1:length(unit_data)
 
@@ -22,21 +23,15 @@ for window_num = 1:length(window_starts)
         valid = ~isnan(data.times.('sample_on')) & ~isnan(data.times.('sac_on'));
         tmp = data;
         tmp.binned_spikes = tmp.binned_spikes(1,:,valid); % unit x ms x trial
-        tmp.baseline_pupil = tmp.baseline_pupil(valid,:);
-        tmp.bs_evoked_pupil = tmp.bs_evoked_pupil(valid,:);
-        tmp.cleaned_pupil = tmp.cleaned_pupil(valid,:);
-        tmp.ids = tmp.ids(valid,:);
         tmp.times = tmp.times(valid,:);
-        tmp.values = tmp.values(valid,:);
-        tmp.spikes = []; % for memory
-        tmp.spike_time_mat = [];
-        tmp.signals = [];
-        
+                
         % Calculate baseline -- very important for comapring between tasks that are
         % blocked in case you want to subtract
         % Gives mean baseline for each trial 300ms prior to sample on.
         clear epochs;
-        epochs.baseline(1,:) = plotBaselineDrift_AODR(tmp,1,'sample_on',300,[],0);
+        window_width = [300, -1];
+        [~,baseline] = plotPSTHAligned(tmp,'sample_on',window_width,[],[],0,0);
+        epochs.baseline(1,:) = mean(baseline, 'omitnan');
         
         epochs.is_bs = 1; % is baseline subtracted
         tmp.binned_spikes(1,:,:) = squeeze(tmp.binned_spikes(1,:,:)) - squeeze(epochs.baseline(1,:));
@@ -48,11 +43,14 @@ for window_num = 1:length(window_starts)
         % for each trial
         [~, target_on] = plotPSTHAligned(tmp, 'sample_on', cur_window, [], [], 0, 0);
         event_idx = ~isnan(tmp.times.('sample_on'));
-        % epochs.target_on(1, event_idx) = mean(target_on, 'omitnan'); % visual
-        epochs.memory(1, event_idx) = mean(target_on, 'omitnan'); % memory
+        %epochs.target_on(1, event_idx) = mean(target_on, 'omitnan'); % visual
+        %epochs.memory(1, event_idx) = mean(target_on, 'omitnan'); % memory
+        epochs.whole(1, event_idx) = mean(target_on, 'omitnan'); % whole time course
 
         %unit_data(unit_num).epochs.target_on = epochs.target_on; % visual
-        unit_data(unit_num).epochs.memory = epochs.memory; % memory
+        %unit_data(unit_num).epochs.memory = epochs.memory; % memory
+        unit_data(unit_num).epochs.whole = epochs.whole; % whole time course
+        data = unit_data(unit_num);
                 
         %% Compute AUC (high vs. low hazard rate visual response)
         
@@ -62,11 +60,13 @@ for window_num = 1:length(window_starts)
     
         low_tr = data.values.hazard == 0.05;
         %low = data.epochs.target_on(low_tr); % visual
-        low = data.epochs.memory(low_tr); % memory
+        %low = data.epochs.memory(low_tr); % memory
+        low = data.epochs.whole(low_tr); % whole time course
     
         high_tr = data.values.hazard == 0.50;
         %high = data.epochs.target_on(high_tr); % visual
-        high = data.epochs.memory(high_tr); % memory
+        %high = data.epochs.memory(high_tr); % memory
+        high = data.epochs.whole(high_tr);
     
         stimulus_responses{1} = low;
         stimulus_responses{2} = high;
@@ -85,7 +85,15 @@ for window_num = 1:length(window_starts)
     all_population_ROCs{window_num} = population_ROCs; % Save
 
     %% Run stats
-    med = median(population_ROCs);
+    quartiles = prctile(population_ROCs, [25, 50, 75]);
+    Q1 = quartiles(1);
+    med = quartiles(2);
+    Q3 = quartiles(3);
+    IQR = Q3 - Q1;
+    avg = mean(population_ROCs);
+    std_dev = std(population_ROCs);
+    SEM = std_dev / sqrt(length(unit_data));
+
     centered_population = population_ROCs - 0.5;
     p_sign = signtest(centered_population);
     %fprintf('p-value from Sign Test: %.4f\n', p);
@@ -94,17 +102,10 @@ for window_num = 1:length(window_starts)
     [~, p_ttest] = ttest(centered_population);
     %fprintf('p-value from T Test: %.4f\n', p);
     
-    new_row = table(abs(window_starts(window_num)), med, p_sign, p_rank, p_ttest, ...
-                    'VariableNames', {'Window_Start_50ms', 'Median', 'SignTest_p', 'RankTest_p', 'TTest_p'});
+    new_row = table((window_starts(window_num)*-1+window_ends(window_num))/2, ...
+        avg, std_dev, SEM, Q1, med, Q3, IQR, p_sign, p_rank, p_ttest, ...
+        'VariableNames', {'Window_Center', 'Mean', 'Std', 'SEM', 'Q1', ...
+        'Median', 'Q3', 'IQR', 'SignTest_p', 'RankTest_p', 'TTest_p'});
     slide_stats_table = [slide_stats_table; new_row];
 
 end % for each window width
-
-%% Plot median over time (window)
-figure;
-times = slide_stats_table.Window_Start_50ms;
-medians = slide_stats_table.Median;
-is_sig_median = slide_stats_table.SignTest_p < 0.05;
-plot(times, medians);
-hold on;
-scatter(times(is_sig_median), medians(is_sig_median));

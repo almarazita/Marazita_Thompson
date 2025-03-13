@@ -1,0 +1,44 @@
+%% Peak comparison
+% Get the difference between the maximum absolute average
+% baseline-subtracted firing rates in the high and low switch conditions to
+% compare to ROC analysis. Neurons with better discriminability in the
+% visual epoch should have larger differences between their peak responses.
+
+for unit_num = 1:95
+
+    data = unit_data(unit_num);
+
+    window_width = [300, -1];
+    [~,baseline] = plotPSTHAligned(data,'sample_on',window_width,[],[],0,0);
+    baseline = mean(baseline, 'omitnan');
+    
+    data.binned_spikes(1,:,:) = squeeze(data.binned_spikes(1,:,:)) - baseline;
+
+    %window_width = [-100, 249];
+    window_width = [-300, 899];
+    [~, target_on] = plotPSTHAligned(data,'sample_on',window_width,[],[],0,0);
+
+    low_tr = data.values.hazard == 0.05;
+    low_response = mean(target_on(:, low_tr), 2, 'omitnan');
+
+    high_tr = data.values.hazard == 0.50;
+    high_response = mean(target_on(:, high_tr), 2, 'omitnan');
+
+    low_max_min = [min(low_response), max(low_response)];
+    [~, low_peak_loc] = max(abs(low_max_min));
+    low_peak = low_max_min(low_peak_loc);
+
+    high_max_min = [min(high_response), max(high_response)];
+    [~, high_peak_loc] = max(abs(high_max_min));
+    high_peak = high_max_min(high_peak_loc);
+
+    peak_diffs(unit_num) = high_peak - low_peak;
+
+end
+
+figure;
+subplot(1,2,1);
+histogram(peak_diffs);
+subplot(1,2,2);
+scatter(unit_data.memory_ROC, peak_diffs);
+yline(0, '-k');
