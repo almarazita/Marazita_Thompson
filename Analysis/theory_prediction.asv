@@ -10,7 +10,7 @@ dklFromBelief = @(b1,b2) dkl([pFromBelief(b1) 1-pFromBelief(b1)], [pFromBelief(b
 negentropy = @(ps) ps.*log(ps)+(1-ps).*log(1-ps);
 neFromBelief = @(belief) negentropy(pFromBelief(belief));
 
-%% Predict
+%% Calculate
 % Setup
 h = 0.5;
 prior = log(h ./ (1 - h));
@@ -37,6 +37,19 @@ for cue_loc = 1:5
     fprintf('%.3f DKL = %.3f ic + %.3f ir\n', kl(cue_loc), ...
         ic(cue_loc), ir(cue_loc));
 end
+
+% Redo for extreme cue locations that threw NaNs
+negentropy_ref = negentropy(h);
+ic(1) = 0 - negentropy_ref;
+ic(5) = 0 - negentropy_ref;
+xaxis = 0:0.001:1;
+yaxis = negentropy(xaxis);
+dy = diff(yaxis); dx = diff(xaxis); dy_dx = dy ./ dx;
+grad_ref = dy_dx(xaxis == h);
+
+dx = pFromBelief(cur_beliefs(1)) - h;
+ir(1) = -1*grad_ref*dx;
+kl(1) = ic(1) + ir(1) = 0.0518
 
 %% Plot
 % Bar graphs with quantities grouped together in rows
@@ -66,7 +79,7 @@ ylim([1.1*-0.2406, 1.1*0.3616]);
 %     legend();
 % end
 
-% 1D belief 
+% 1D belief updates
 % figure;
 % hold on;
 % 
@@ -101,11 +114,9 @@ ylim([1.1*-0.2406, 1.1*0.3616]);
 % p4.HandleVisibility = 'off';
 % legend();
 
-% 2D
+% 2D negentropy curve
 % figure;
 % hold on;
-% xaxis = 0:0.001:1;
-% yaxis = negentropy(xaxis);
 % 
 % p = plot(xaxis, yaxis, 'DisplayName', '');
 % scatter(h, negentropy(h), 'DisplayName', 'Prior = 0.33');
