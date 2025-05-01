@@ -1,6 +1,6 @@
 %% Plot_Low_v_High_DI
-visual = true;
-responsive_only = true;
+visual = false;
+responsive_only = false;
 
 LowH_DI = [unit_data.LowH_DI];
 HighH_DI = [unit_data.HighH_DI];
@@ -24,6 +24,8 @@ xlim([0, 0.6]);
 ylim([0, 0.6]);
 yticks(xticks());
 plot([0, 0.6],[0, 0.6], '--k', 'LineWidth', 2);
+ax.XColor = 'k';
+ax.YColor = 'k';
 box on; axis square;
 xlabel('Low Hazard Cue DI');
 ylabel('High Hazard Cue DI');

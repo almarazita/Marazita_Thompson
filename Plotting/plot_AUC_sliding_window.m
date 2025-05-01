@@ -4,19 +4,19 @@
 
 % Setup
 step_size = 10;
-window_width = 50;
+window_width = 150;
 
 window_starts = -300:step_size:900-window_width; % whole time course
 window_ends = window_starts + window_width - 1;
 window_starts = window_starts * -1;
 
 window_centers = (window_starts*-1 + window_ends) / 2;
-means = slide_stats_table_50ms.Mean;
-SEMs = slide_stats_table_50ms.SEM;
+means = slide_stats_table_150ms.Mean;
+SEMs = slide_stats_table_150ms.SEM;
 
 % Mean +/- SEM
-% figure;
-% hold on;
+figure;
+hold on;
 
 yline(0.5, 'k--', 'LineWidth', 1);
 shadedErrorBar(window_centers, means, SEMs);

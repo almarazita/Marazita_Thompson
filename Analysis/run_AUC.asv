@@ -11,24 +11,58 @@ for unit_num = 1:num_units
     fprintf('Computing AUC for unit %d/%d\n', unit_num, num_units);
 
     % Compute baseline-subtracted baseline
-    % baseline = data.epochs.baseline;
-    % spikes = squeeze(unit_data(unit_num).binned_spikes(:,1:300,:));
-    % baseline_subtracted = spikes - baseline;
-    % bs_baseline = mean(baseline_subtracted);
+    %baseline = data.epochs.baseline;
+    %spikes = squeeze(unit_data(unit_num).binned_spikes(:,1:300,:));
+    %baseline_subtracted = spikes - baseline;
+    %bs_baseline = mean(baseline_subtracted);
 
-    % Create 2 conditions (hazard rates) x 1 "stimulus" (visual epoch) cell
+    % Create 2 conditions (hazard rates) x 1 "stimulus" (epoch) cell
     % array
-    stimulus_responses = cell(2, 1);
+    %stimulus_responses = cell(2, 1);
+    stimulus_responses = cell(2, 2);
 
-    low_tr = data.values.hazard == 0.05;
+    % What the previous correct target and hazard rate were
+    prevState = [nan; data.ids.correct_target(1:end-1)];
+    thisState = data.ids.correct_target;
+    prevH = [nan; data.values.hazard(1:end-1)];
+    thisH = data.values.hazard;
+    cue_loc = data.ids.sample_id;
+    switch_cue = zeros(length(cue_loc),1);
+    stay_cue = zeros(length(cue_loc),1);
+    
+    % The cue signals switch if its position is away from what was previously
+    % correct, and we're in the same AODR block
+    switch_cue(thisH==prevH & prevState==1 & ismember(cue_loc,[2,3,4]))=1; % Bottom to top
+    switch_cue(thisH==prevH & prevState==2 & ismember(cue_loc,[-2,-3,-4]))=1; % Top to bottom
+    stay_cue(thisH==prevH & prevState==1 & ismember(cue_loc,[-2,-3,-4]))=1; % Bottom before, bottom now
+    stay_cue(thisH==prevH & prevState==2 & ismember(cue_loc,[2,3,4]))=1; % Top before, top now
+
+    % Response
+    correct = data.ids.score==1 & ~isnan(data.ids.choice);
+
+    % Switch rate
+    %low_tr = data.values.hazard == 0.05;
+    low_h = data.values.hazard == 0.05;
+    
+    % Choose trials
+    bottom_stay = low_h & stay_cue & thisState==1 & correct;
+    top_stay = low_h & stay_cue & thisState==2 & correct;
+    bottom_switch = low_h & switch_cue & thisState==1 & correct;
+    top_switch = low_h & switch_cue & thisState==2 & correct;
+
+    %low = baseline(low_tr); % raw baseline
     %low = bs_baseline(low_tr); % baseline
-    low = data.epochs.target_on(low_tr); % visual
+    %low = data.epochs.target_on(low_tr); % visual
     %low = data.epochs.memory(low_tr); % memory
 
-    high_tr = data.values.hazard == 0.50;
+    %high_tr = data.values.hazard == 0.50;
+    %high = baseline(high_tr); % raw baseline
     %high = bs_baseline(high_tr); % baseline
-    high = data.epochs.target_on(high_tr); % visual
+    %high = data.epochs.target_on(high_tr); % visual
     %high = data.epochs.memory(high_tr); % memory
+
+    % For stay-switch
+    stimulus_responses{1,1} = bs_baseline()
 
     stimulus_responses{1} = low;
     stimulus_responses{2} = high;
@@ -37,29 +71,35 @@ for unit_num = 1:num_units
     % Prefer high hazard (pref = 2)
     % Trial_min = 3
     % num_bootstraps = 1000
-    [raw_ROC, ROC_percentiles] = GrandChoiceProb_Permutation(stimulus_responses, 2, 3, 1000);
+    [raw_ROC, ROC_percentiles] = GrandChoiceProb_Permutation(stimulus_responses, 2, 3, 0);
     population_ROCs(unit_num) = raw_ROC; % Add to array
-    population_ROC_percentiles{unit_num} = ROC_percentiles;
+    %population_ROC_percentiles{unit_num} = ROC_percentiles;
 
     % Add raw value and significance to unit_table
+    %unit_data(unit_num).raw_baseline_ROC = raw_ROC; % baseline
     %unit_data(unit_num).baseline_ROC = raw_ROC; % baseline
-    unit_data(unit_num).visual_ROC = raw_ROC; % visual
+    %unit_data(unit_num).visual_ROC = raw_ROC; % visual
     %unit_data(unit_num).memory_ROC = raw_ROC; % memory
+    %unit_data(unit_num).switch_baseline_ROC = raw_ROC; % switch baseline
+    %unit_data(unit_num).switch_visual_ROC = raw_ROC; % switch visual
+    unit_data(unit_num).switch_memory_ROC = raw_ROC; % switch memory
 
-    if raw_ROC < ROC_percentiles(1) || raw_ROC > ROC_percentiles(2)
+    %if raw_ROC < ROC_percentiles(1) || raw_ROC > ROC_percentiles(2)
+        %unit_data(unit_num).raw_baseline_ROC_sig = 1; % raw baseline
         %unit_data(unit_num).baseline_ROC_sig = 1; % baseline
-        unit_data(unit_num).visual_ROC_sig = 1; % visual
-        % unit_data(unit_num).memory_ROC_sig = 1; % memory
-    else
+        %unit_data(unit_num).visual_ROC_sig = 1; % visual
+        %unit_data(unit_num).memory_ROC_sig = 1; % memory
+    %else
+        %unit_data(unit_num).raw_baseline_ROC_sig = 0; % raw baseline
         %unit_data(unit_num).baseline_ROC_sig = 0; % baseline
-        unit_data(unit_num).visual_ROC_sig = 0; % visual
-        % unit_data(unit_num).memory_ROC_sig = 0; % memory
-    end
+        %unit_data(unit_num).visual_ROC_sig = 0; % visual
+        %unit_data(unit_num).memory_ROC_sig = 0; % memory
+    %end
 
 end
 
 %% Run stats
-med = median(population_ROCs);
+med = median(population_ROCs, "omitnan");
 fprintf('Median: %.4f\n', med);
 centered_population = population_ROCs - 0.5;
 p = signtest(centered_population);
@@ -68,50 +108,3 @@ p = signrank(centered_population);
 fprintf('p-value from Sign Rank: %.4f\n', p);
 [~, p] = ttest(centered_population);
 fprintf('p-value from T Test: %.4f\n', p);
-
-%% Plot histogram of raw ROCs
-num_bins = 25;
-bin_width = 1 / num_bins;  
-bin_edges = 0:bin_width:1;
-
-% Create the histogram
-figure;
-hold on;
-%is_red = [unit_data.baseline_ROC].' > 0.5; % baseline
-%is_blue = [unit_data.baseline_ROC].' < 0.5; % baseline
-is_red = [unit_data.visual_ROC].' > 0.5; % visual
-is_blue = [unit_data.visual_ROC].' < 0.5; % visual
-%is_red = [unit_data.memory_ROC].' > 0.5; % memory
-%is_blue = [unit_data.memory_ROC].' < 0.5; % memory
-histogram(population_ROCs, 'BinEdges', bin_edges, ...
-    'Normalization', 'count', 'FaceColor', 'w', 'EdgeColor', 'k', ...
-    'FaceAlpha', 0.8, 'LineWidth', 1.2);
-%is_sig = logical([unit_data.baseline_ROC_sig].'); % baseline
-is_sig = logical([unit_data.visual_ROC_sig].'); % visual
-%is_sig = logical([unit_data.memory_ROC_sig].'); % memory
-histogram(population_ROCs(is_sig & is_blue), 'BinEdges', bin_edges, ...
-    'FaceColor', "#0860A9", 'EdgeColor', 'k', 'FaceAlpha', 0.8, ...
-    'LineWidth', 1.2);
-histogram(population_ROCs(is_sig & is_red), 'BinEdges', bin_edges, ...
-    'FaceColor', "#C21F51", 'EdgeColor', 'k', 'FaceAlpha', 0.8, ...
-    'LineWidth', 1.2);
-y_limits = ylim;
-plot([med, med], y_limits, 'k:', 'LineWidth', 1.5);
-arrow_size = 0.03 * diff(y_limits);
-arrow_x = med;
-arrow_y = y_limits(2) + 0.05*diff(y_limits);
-x_triangle = [-0.01 0 0.01] + arrow_x;
-y_triangle = [0.5 -0.5 0.5] + arrow_y;
-fill(x_triangle, y_triangle, 'k', 'EdgeColor', 'k', 'FaceColor', 'k');
-xlim([0, 1]);
-xlabel('AUC', 'FontSize', 14);
-ylabel('Number of Neurons', 'FontSize', 14);
-%title('Baseline', 'FontSize', 14); % baseline
-title('Visual', 'FontSize', 14); % visual
-%title('Memory', 'FontSize', 14); % memory
-ax = gca;
-ax.LineWidth = 2;
-ax.XColor = 'k';
-ax.YColor = 'k';
-set(ax, 'FontSize', 14);
-axis square;

@@ -21,7 +21,7 @@ stimulus_responses = nan_cleaned;
 valid_stimuli = cellfun(@length, stimulus_responses) >= Trial_min; % Find cells that meet the minimum trial count
 valid_stimuli = find(valid_stimuli(1,:) & valid_stimuli(2,:)); % Find stimuli that meet the minimum trial count for both choices
 
-if ~isempty(valid_stimuli)
+if length(valid_stimuli) == size(stimulus_responses, 2)
     stim_z_responses{1} = [];
     stim_z_responses{2} = [];
     for s = 1:length(valid_stimuli)

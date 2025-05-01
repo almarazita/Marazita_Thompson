@@ -1,5 +1,5 @@
 %% Calculate a discrimination index for the different hazards
-visual = true;
+visual = false;
 
 for unit_num = 1:95
 

@@ -11,10 +11,10 @@ for unit_num = 1:num_units
     fprintf('Computing AUC for unit %d/%d\n', unit_num, num_units);
 
     % Compute baseline-subtracted baseline
-    %baseline = data.epochs.baseline;
-    %spikes = squeeze(unit_data(unit_num).binned_spikes(:,1:300,:));
-    %baseline_subtracted = spikes - baseline;
-    %bs_baseline = mean(baseline_subtracted);
+    baseline = data.epochs.baseline;
+    spikes = squeeze(unit_data(unit_num).binned_spikes(:,1:300,:));
+    baseline_subtracted = spikes - baseline;
+    bs_baseline = mean(baseline_subtracted);
 
     % Create 2 conditions (hazard rates) x 1 "stimulus" (epoch) cell
     % array
@@ -62,10 +62,10 @@ for unit_num = 1:num_units
     %high = data.epochs.memory(high_tr); % memory
 
     % For stay-switch
-    stimulus_responses{1,1} = data.epochs.memory(bottom_stay);
-    stimulus_responses{1,2} = data.epochs.memory(top_stay);
-    stimulus_responses{2,1} = data.epochs.memory(bottom_switch);
-    stimulus_responses{2,2} = data.epochs.memory(top_switch);
+    stimulus_responses{1,1} = bs_baseline(bottom_stay);
+    stimulus_responses{1,2} = bs_baseline(top_stay);
+    stimulus_responses{2,1} = bs_baseline(bottom_switch);
+    stimulus_responses{2,2} = bs_baseline(top_switch);
 
     %stimulus_responses{1} = low;
     %stimulus_responses{2} = high;
@@ -83,9 +83,9 @@ for unit_num = 1:num_units
     %unit_data(unit_num).baseline_ROC = raw_ROC; % baseline
     %unit_data(unit_num).visual_ROC = raw_ROC; % visual
     %unit_data(unit_num).memory_ROC = raw_ROC; % memory
-    %unit_data(unit_num).switch_baseline_ROC = raw_ROC; % switch baseline
+    unit_data(unit_num).switch_baseline_ROC = raw_ROC; % switch baseline
     %unit_data(unit_num).switch_visual_ROC = raw_ROC; % switch visual
-    unit_data(unit_num).switch_memory_ROC = raw_ROC; % switch memory
+    %unit_data(unit_num).switch_memory_ROC = raw_ROC; % switch memory
 
     %if raw_ROC < ROC_percentiles(1) || raw_ROC > ROC_percentiles(2)
         %unit_data(unit_num).raw_baseline_ROC_sig = 1; % raw baseline
