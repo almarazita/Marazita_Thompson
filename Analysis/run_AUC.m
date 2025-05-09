@@ -18,8 +18,7 @@ for unit_num = 1:num_units
 
     % Create 2 conditions (hazard rates) x 1 "stimulus" (epoch) cell
     % array
-    %stimulus_responses = cell(2, 1);
-    stimulus_responses = cell(2, 2);
+    stimulus_responses = cell(2, 1);
 
     % What the previous correct target and hazard rate were
     prevState = [nan; data.ids.correct_target(1:end-1)];
@@ -32,40 +31,32 @@ for unit_num = 1:num_units
     
     % The cue signals switch if its position is away from what was previously
     % correct, and we're in the same AODR block
-    switch_cue(thisH==prevH & prevState==1 & ismember(cue_loc,[2,3,4]))=1; % Bottom to top
-    switch_cue(thisH==prevH & prevState==2 & ismember(cue_loc,[-2,-3,-4]))=1; % Top to bottom
-    stay_cue(thisH==prevH & prevState==1 & ismember(cue_loc,[-2,-3,-4]))=1; % Bottom before, bottom now
-    stay_cue(thisH==prevH & prevState==2 & ismember(cue_loc,[2,3,4]))=1; % Top before, top now
+    switch_cue(prevH==thisH & prevState==1 & ismember(cue_loc,[2,3,4]))=1; % Bottom to top
+    switch_cue(prevH==thisH & prevState==2 & ismember(cue_loc,[-2,-3,-4]))=1; % Top to bottom
+    stay_cue(prevH==thisH & prevState==1 & ismember(cue_loc,[-2,-3,-4]))=1; % Bottom before, bottom now
+    stay_cue(prevH==thisH & prevState==2 & ismember(cue_loc,[2,3,4]))=1; % Top before, top now
 
     % Response
     correct = data.ids.score==1 & ~isnan(data.ids.choice);
 
     % Switch rate
-    %low_tr = data.values.hazard == 0.05;
+    low_tr = data.values.hazard == 0.05;
     low_h = data.values.hazard == 0.05;
-    
-    % Choose trials
-    bottom_stay = low_h & stay_cue & thisState==1 & correct;
-    top_stay = low_h & stay_cue & thisState==2 & correct;
-    bottom_switch = low_h & switch_cue & thisState==1 & correct;
-    top_switch = low_h & switch_cue & thisState==2 & correct;
 
     %low = baseline(low_tr); % raw baseline
     %low = bs_baseline(low_tr); % baseline
     %low = data.epochs.target_on(low_tr); % visual
     %low = data.epochs.memory(low_tr); % memory
 
-    %high_tr = data.values.hazard == 0.50;
+    high_tr = data.values.hazard == 0.50;
     %high = baseline(high_tr); % raw baseline
     %high = bs_baseline(high_tr); % baseline
     %high = data.epochs.target_on(high_tr); % visual
     %high = data.epochs.memory(high_tr); % memory
 
     % For stay-switch
-    stimulus_responses{1,1} = bs_baseline(bottom_stay);
-    stimulus_responses{1,2} = bs_baseline(top_stay);
-    stimulus_responses{2,1} = bs_baseline(bottom_switch);
-    stimulus_responses{2,2} = bs_baseline(top_switch);
+    stimulus_responses{1,1} = data.epochs.target_on(low_h & stay_cue & correct);
+    stimulus_responses{2,1} = data.epochs.target_on(low_h & switch_cue & correct);
 
     %stimulus_responses{1} = low;
     %stimulus_responses{2} = high;
@@ -79,11 +70,11 @@ for unit_num = 1:num_units
     %population_ROC_percentiles{unit_num} = ROC_percentiles;
 
     % Add raw value and significance to unit_table
-    %unit_data(unit_num).raw_baseline_ROC = raw_ROC; % baseline
+    %unit_data(unit_num).raw_baseline_ROC = raw_ROC; % raw baseline
     %unit_data(unit_num).baseline_ROC = raw_ROC; % baseline
     %unit_data(unit_num).visual_ROC = raw_ROC; % visual
     %unit_data(unit_num).memory_ROC = raw_ROC; % memory
-    unit_data(unit_num).switch_baseline_ROC = raw_ROC; % switch baseline
+    %unit_data(unit_num).switch_baseline_ROC = raw_ROC; % switch baseline
     %unit_data(unit_num).switch_visual_ROC = raw_ROC; % switch visual
     %unit_data(unit_num).switch_memory_ROC = raw_ROC; % switch memory
 

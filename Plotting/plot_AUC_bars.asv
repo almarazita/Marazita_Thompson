@@ -62,7 +62,7 @@ ax.YColor = 'k';
 set(ax, 'FontSize', 14);
 axis square;
 
-xticklabels({'Baseline', 'Visual Period', 'Memory Period'});
+xticklabels({'Baseline', 'Visual Period'});
 ylabel('Mean AUC');
 legend({'Certain evidence', 'Conflicting evidence'}, 'Location', 'NorthWest');
 
